@@ -5,7 +5,9 @@ import './Map.css';
 import type { ADSBFlight } from '../../types/flight';
 import { useFlightStore } from '../../stores/flightStore';
 import { useFilteredFlights } from '../../hooks/useFilteredFlights';
+import { useFIRFilter } from '../../hooks/useFIRFilter';
 import { flightTypeColor, formatAltitude, formatSpeed, displayCallsign } from '../../lib/utils';
+import { setMapInstance } from './mapRef';
 
 // SVG aircraft icon factory
 function createAircraftSvg(color: string, heading: number, selected: boolean): string {
@@ -40,7 +42,8 @@ export default function FlightMap() {
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const trailLayerRef = useRef<L.LayerGroup | null>(null);
 
-  const flights = useFilteredFlights();
+  const filteredFlights = useFilteredFlights();
+  const flights = useFIRFilter(filteredFlights);
   const selectedFlight = useFlightStore((s) => s.selectedFlight);
   const selectFlight = useFlightStore((s) => s.selectFlight);
 
@@ -72,8 +75,10 @@ export default function FlightMap() {
 
     trailLayerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
+    setMapInstance(map);
 
     return () => {
+      setMapInstance(null);
       map.remove();
       mapRef.current = null;
     };

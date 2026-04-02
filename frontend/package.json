@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.96.0",
+    "@turf/bbox": "^7.3.4",
+    "@turf/boolean-point-in-polygon": "^7.3.4",
+    "@turf/helpers": "^7.3.4",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "lucide-react": "^1.7.0",

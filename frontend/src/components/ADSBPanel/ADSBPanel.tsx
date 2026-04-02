@@ -1,11 +1,14 @@
 import { useFilteredFlights } from '../../hooks/useFilteredFlights';
+import { useFIRFilter } from '../../hooks/useFIRFilter';
 import { useFlightStore } from '../../stores/flightStore';
 import { useUIStore } from '../../stores/uiStore';
 import { flightTypeColor, formatAltitude, displayCallsign } from '../../lib/utils';
+import FIRPanel from './FIRPanel';
 import './ADSBPanel.css';
 
 export default function ADSBPanel() {
-  const flights = useFilteredFlights();
+  const filteredFlights = useFilteredFlights();
+  const flights = useFIRFilter(filteredFlights);
   const { selectedFlight, selectFlight } = useFlightStore();
   const { setInfoPanelOpen } = useUIStore();
 
@@ -26,6 +29,7 @@ export default function ADSBPanel() {
 
   return (
     <div className="adsb-panel">
+      <FIRPanel />
       <div className="adsb-panel__header">
         Nearby — {flights.length} aircraft
       </div>
