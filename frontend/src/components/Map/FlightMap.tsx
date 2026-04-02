@@ -11,6 +11,14 @@ import { getFIRBounds } from '../../lib/firService';
 import { flightTypeColor, formatAltitude, formatSpeed, displayCallsign } from '../../lib/utils';
 import { setMapInstance } from './mapRef';
 
+type BaseLayerConfig = {
+  name: string;
+  url: string;
+  attribution: string;
+  options?: L.TileLayerOptions;
+  aeronautical?: boolean;
+};
+
 // SVG aircraft icon factory — cached by (color, heading-bucket, selected)
 const iconCache = new Map<string, L.DivIcon>();
 
@@ -39,6 +47,39 @@ function getAircraftIcon(color: string, heading: number, selected: boolean): L.D
 }
 
 const MAP_CENTER: L.LatLngExpression = [50, 10]; // Europe
+
+const configuredAeronauticalTileUrl = (import.meta.env.VITE_AERONAUTICAL_TILE_URL ?? '').trim();
+const configuredAeronauticalTileName = (import.meta.env.VITE_AERONAUTICAL_TILE_NAME ?? 'Aeronautical Chart').trim();
+const configuredAeronauticalAttribution = (
+  import.meta.env.VITE_AERONAUTICAL_TILE_ATTRIBUTION ?? 'Aeronautical chart data'
+).trim();
+
+function createBaseLayerConfigs(): BaseLayerConfig[] {
+  const configs: BaseLayerConfig[] = [];
+
+  // Standard dark basemap (FIR borders are always drawn on top by FIRLayer)
+  configs.push({
+    name: 'Standard + FIR Borders',
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://carto.com">CARTO</a>',
+    options: { maxZoom: 18, subdomains: 'abcd' },
+  });
+
+  // Aeronautical chart overlay (visible at higher zoom levels)
+  if (configuredAeronauticalTileUrl) {
+    configs.push({
+      name: configuredAeronauticalTileName,
+      url: configuredAeronauticalTileUrl,
+      attribution: configuredAeronauticalAttribution,
+      aeronautical: true,
+      options: {
+        maxZoom: 18,
+      },
+    });
+  }
+
+  return configs;
+}
 
 function buildPopupHtml(flight: ADSBFlight): string {
   return `<div class="flight-popup-content">
@@ -127,19 +168,29 @@ export default function FlightMap() {
       attributionControl: false,
     });
 
+    const attributionControl = L.control.attribution({ position: 'bottomleft', prefix: false });
+    attributionControl.addTo(map);
+
     // Add zoom control to top-right
     L.control.zoom({ position: 'topright' }).addTo(map);
 
-    // Dark tile layer
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 18,
-      subdomains: 'abcd',
-    }).addTo(map);
+    const baseLayers = createBaseLayerConfigs();
+    const baseLayerInstances = Object.fromEntries(
+      baseLayers.map((config) => [
+        config.name,
+        L.tileLayer(config.url, {
+          attribution: config.attribution,
+          ...config.options,
+        }),
+      ]),
+    ) as Record<string, L.TileLayer>;
 
-    // Attribution (required but minimal)
-    L.control.attribution({ position: 'bottomleft', prefix: false })
-      .addAttribution('&copy; <a href="https://carto.com">CARTO</a>')
-      .addTo(map);
+    const defaultBaseLayer =
+      baseLayers.find((config) => !config.aeronautical) ??
+      baseLayers[0];
+
+    baseLayerInstances[defaultBaseLayer.name].addTo(map);
+    L.control.layers(baseLayerInstances, undefined, { position: 'topleft', collapsed: false }).addTo(map);
 
     trailLayerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;

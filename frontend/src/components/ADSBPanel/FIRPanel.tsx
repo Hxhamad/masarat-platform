@@ -37,7 +37,7 @@ export default function FIRPanel() {
                 <span key={id} className="fir-panel__chip">
                   <MapPin size={10} className="fir-panel__chip-icon" />
                   <span className="fir-panel__chip-text">
-                    {fir ? `${fir.id}` : id}
+                    {fir ? fir.name : id}
                   </span>
                   {selectedFIRs.length > 1 && (
                     <button

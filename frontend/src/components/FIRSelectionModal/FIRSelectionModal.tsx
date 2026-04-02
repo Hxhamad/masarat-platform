@@ -85,7 +85,7 @@ export default function FIRSelectionModal() {
               return (
                 <span key={id} className="fir-modal__chip">
                   <span className="fir-modal__chip-text">
-                    {fir ? `${fir.id} — ${fir.name}` : id}
+                    {fir ? fir.name : id}
                   </span>
                   <button className="fir-modal__chip-remove" onClick={() => removeFIR(id)}>
                     <X size={12} />
@@ -142,7 +142,7 @@ export default function FIRSelectionModal() {
                   <div className="fir-modal__item-info">
                     <span className="fir-modal__item-name">{f.name}</span>
                     <span className="fir-modal__item-meta">
-                      {f.id} {f.country ? `· ${f.country}` : ''}
+                      {f.country || ''}
                     </span>
                   </div>
                   {isSelected && (

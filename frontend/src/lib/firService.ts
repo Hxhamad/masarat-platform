@@ -12,6 +12,13 @@ import type { FeatureCollection, Polygon, MultiPolygon } from 'geojson';
 import type { FIRFeature, FIRBounds } from '../types/fir';
 import bbox from '@turf/bbox';
 
+interface FIRFileMetadata {
+  airspaceType?: string;
+  source?: string;
+}
+
+type FIRFile = FeatureCollection & { metadata?: FIRFileMetadata };
+
 // ---- FIR sources (local bundled first, remote fallback) ----
 const FIR_GEOJSON_URLS = [
   '/data/firs.geojson',
@@ -32,6 +39,29 @@ let fetchPromise: Promise<FIRFeature[]> | null = null;
 function computeBounds(feature: FIRFeature): FIRBounds {
   const [minLng, minLat, maxLng, maxLat] = bbox(feature);
   return { minLat, maxLat, minLng, maxLng };
+}
+
+function safeString(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  return String(value).trim();
+}
+
+function resolveCountryName(value: unknown): string {
+  const raw = safeString(value);
+  if (!raw) return '';
+
+  const normalized = raw.replace(/[^A-Za-z]/g, '').toUpperCase();
+  if (normalized.length === 2) {
+    try {
+      const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
+      const name = regionNames.of(normalized);
+      if (safeString(name)) return String(name);
+    } catch {
+      // Keep original value when region lookup is unavailable.
+    }
+  }
+
+  return raw;
 }
 
 /**
@@ -60,7 +90,7 @@ function normalise(raw: FeatureCollection): FIRFeature[] {
       props.name ??
       props.Name ??
       id;
-    const country: string =
+    const countryCodeOrName: string =
       props.Country ??
       props.country ??
       props.COUNTRY ??
@@ -68,6 +98,7 @@ function normalise(raw: FeatureCollection): FIRFeature[] {
       props.state ??
       props.admin ??
       '';
+    const country = resolveCountryName(countryCodeOrName);
 
     const feature: FIRFeature = {
       type: 'Feature',
@@ -80,6 +111,10 @@ function normalise(raw: FeatureCollection): FIRFeature[] {
   }
 
   return out;
+}
+
+function hasVerifiedFIRMetadata(raw: FIRFile): boolean {
+  return safeString(raw.metadata?.airspaceType).toUpperCase() === 'FIR';
 }
 
 /**
@@ -130,7 +165,10 @@ export async function fetchFIRFeatures(): Promise<FIRFeature[]> {
         try {
           const res = await fetch(url);
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const json: FeatureCollection = await res.json();
+          const json = await res.json() as FIRFile;
+          if (url === '/data/firs.geojson' && !hasVerifiedFIRMetadata(json)) {
+            throw new Error('Local FIR artifact is missing FIR verification metadata');
+          }
           const normalised = normalise(json);
           if (normalised.length > 0) {
             cachedFeatures = normalised;

@@ -13,6 +13,38 @@
   background: var(--bg-primary);
 }
 
+.map-container .leaflet-control-layers {
+  background: rgba(10, 18, 32, 0.92);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: var(--panel-shadow);
+}
+
+.map-container .leaflet-control-layers-expanded {
+  padding: 10px 12px;
+}
+
+.map-container .leaflet-control-layers label {
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.map-container .leaflet-control-layers-base span {
+  display: inline-block;
+  margin-left: 6px;
+}
+
+.map-container .leaflet-control-attribution {
+  background: rgba(10, 18, 32, 0.82);
+  color: var(--text-muted);
+  border-top-left-radius: 8px;
+}
+
+.map-container .leaflet-control-attribution a {
+  color: var(--accent);
+}
+
 /* Aircraft marker */
 .aircraft-icon {
   display: flex;
