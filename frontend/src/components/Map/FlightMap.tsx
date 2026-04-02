@@ -11,13 +11,31 @@ import { getFIRBounds } from '../../lib/firService';
 import { flightTypeColor, formatAltitude, formatSpeed, displayCallsign } from '../../lib/utils';
 import { setMapInstance } from './mapRef';
 
-// SVG aircraft icon factory
-function createAircraftSvg(color: string, heading: number, selected: boolean): string {
-  return `<div class="aircraft-icon ${selected ? 'aircraft-icon--selected' : ''}" style="transform: rotate(${heading}deg)">
+// SVG aircraft icon factory — cached by (color, heading-bucket, selected)
+const iconCache = new Map<string, L.DivIcon>();
+
+function bucketHeading(heading: number): number {
+  return Math.round(heading / 10) * 10;
+}
+
+function getAircraftIcon(color: string, heading: number, selected: boolean): L.DivIcon {
+  const h = bucketHeading(heading);
+  const key = `${color}_${h}_${selected ? 1 : 0}`;
+  let icon = iconCache.get(key);
+  if (!icon) {
+    icon = L.divIcon({
+      html: `<div class="aircraft-icon ${selected ? 'aircraft-icon--selected' : ''}" style="transform: rotate(${h}deg)">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg">
       <path d="M12 2L8 10H3L5 13H8L10 20H14L16 13H19L21 10H16L12 2Z"/>
     </svg>
-  </div>`;
+  </div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+      className: '',
+    });
+    iconCache.set(key, icon);
+  }
+  return icon;
 }
 
 const MAP_CENTER: L.LatLngExpression = [50, 10]; // Europe
@@ -42,14 +60,60 @@ export default function FlightMap() {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
+  const markerAnimationRef = useRef<Map<string, number>>(new Map());
   const trailLayerRef = useRef<L.LayerGroup | null>(null);
   const hasFittedRef = useRef(false);
+  const selectedFlight = useFlightStore((s: ReturnType<typeof useFlightStore.getState>) => s.selectedFlight);
+  const selectFlight = useFlightStore((s: ReturnType<typeof useFlightStore.getState>) => s.selectFlight);
+  const selectedFIRs = useFIRStore((s: ReturnType<typeof useFIRStore.getState>) => s.selectedFIRs);
 
   const filteredFlights = useFilteredFlights();
   const flights = useFIRFilter(filteredFlights);
-  const selectedFlight = useFlightStore((s) => s.selectedFlight);
-  const selectFlight = useFlightStore((s) => s.selectFlight);
-  const selectedFIRs = useFIRStore((s) => s.selectedFIRs);
+
+  const cancelMarkerAnimation = useCallback((icao24: string) => {
+    const frame = markerAnimationRef.current.get(icao24);
+    if (frame) {
+      cancelAnimationFrame(frame);
+      markerAnimationRef.current.delete(icao24);
+    }
+  }, []);
+
+  const animateMarkerPosition = useCallback(
+    (icao24: string, marker: L.Marker, latitude: number, longitude: number) => {
+      cancelMarkerAnimation(icao24);
+
+      const start = marker.getLatLng();
+      const deltaLat = latitude - start.lat;
+      const deltaLng = longitude - start.lng;
+
+      if (Math.abs(deltaLat) < 0.0001 && Math.abs(deltaLng) < 0.0001) {
+        marker.setLatLng([latitude, longitude]);
+        return;
+      }
+
+      const startTime = performance.now();
+      const duration = 1200;
+
+      const step = (now: number) => {
+        const progress = Math.min((now - startTime) / duration, 1);
+        marker.setLatLng([
+          start.lat + deltaLat * progress,
+          start.lng + deltaLng * progress,
+        ]);
+
+        if (progress < 1) {
+          const frame = requestAnimationFrame(step);
+          markerAnimationRef.current.set(icao24, frame);
+        } else {
+          markerAnimationRef.current.delete(icao24);
+        }
+      };
+
+      const frame = requestAnimationFrame(step);
+      markerAnimationRef.current.set(icao24, frame);
+    },
+    [cancelMarkerAnimation],
+  );
 
   // Initialize map
   useEffect(() => {
@@ -82,6 +146,10 @@ export default function FlightMap() {
     setMapInstance(map);
 
     return () => {
+      for (const frame of markerAnimationRef.current.values()) {
+        cancelAnimationFrame(frame);
+      }
+      markerAnimationRef.current.clear();
       setMapInstance(null);
       map.remove();
       mapRef.current = null;
@@ -126,26 +194,21 @@ export default function FlightMap() {
       const isSelected = flight.icao24 === selectedFlight;
 
       let marker = markersRef.current.get(flight.icao24);
+      const icon = getAircraftIcon(color, flight.heading, isSelected);
+
       if (marker) {
-        // Update position
-        marker.setLatLng([flight.latitude, flight.longitude]);
-        // Update icon
-        marker.setIcon(L.divIcon({
-          html: createAircraftSvg(color, flight.heading, isSelected),
-          iconSize: [24, 24],
-          iconAnchor: [12, 12],
-          className: '',
-        }));
+        // Animate position updates when the visible set is moderate enough.
+        if (flights.length <= 750) {
+          animateMarkerPosition(flight.icao24, marker, flight.latitude, flight.longitude);
+        } else {
+          cancelMarkerAnimation(flight.icao24);
+          marker.setLatLng([flight.latitude, flight.longitude]);
+        }
+        // Update icon only when the cached key changes
+        marker.setIcon(icon);
       } else {
         // Create new marker
-        marker = L.marker([flight.latitude, flight.longitude], {
-          icon: L.divIcon({
-            html: createAircraftSvg(color, flight.heading, isSelected),
-            iconSize: [24, 24],
-            iconAnchor: [12, 12],
-            className: '',
-          }),
-        });
+        marker = L.marker([flight.latitude, flight.longitude], { icon });
 
         marker.on('click', () => {
           selectFlight(flight.icao24);
@@ -155,24 +218,24 @@ export default function FlightMap() {
         markersRef.current.set(flight.icao24, marker);
       }
 
-      // Popup — update content live if open
-      const popupHtml = buildPopupHtml(flight);
+      // Popup — only bind lazily on first open; update content if already open
       const existingPopup = marker.getPopup();
-      if (existingPopup) {
-        existingPopup.setContent(popupHtml);
-      } else {
-        marker.bindPopup(popupHtml, { className: 'flight-popup', closeButton: false });
+      if (existingPopup && existingPopup.isOpen()) {
+        existingPopup.setContent(buildPopupHtml(flight));
+      } else if (!existingPopup) {
+        marker.bindPopup(() => buildPopupHtml(flight), { className: 'flight-popup', closeButton: false });
       }
     }
 
     // Remove stale markers
     for (const [id, marker] of markersRef.current) {
       if (!currentIds.has(id)) {
+        cancelMarkerAnimation(id);
         marker.remove();
         markersRef.current.delete(id);
       }
     }
-  }, [flights, selectedFlight, selectFlight]);
+  }, [flights, selectedFlight, selectFlight, animateMarkerPosition, cancelMarkerAnimation]);
 
   useEffect(() => {
     updateMarkers();

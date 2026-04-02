@@ -1,4 +1,4 @@
-import type { Feature, Polygon, MultiPolygon } from '@turf/helpers';
+import type { Feature, Polygon, MultiPolygon } from 'geojson';
 
 export interface FIRProperties {
   id: string;         // e.g. "OEJD" (ICAO code)

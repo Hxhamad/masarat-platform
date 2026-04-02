@@ -15,21 +15,21 @@ interface SourceConfig {
 const sources: SourceConfig[] = [
   {
     name: 'adsb-lol',
-    url: 'https://api.adsb.lol/v2/lat/50/lon/10/dist/250',
+    url: 'https://api.adsb.lol/v2/lat/46/lon/2/dist/1200',
     normalize: (d) => normalizeReadsB(d as ReadsBResponse),
-    rateLimit: 5_000,
+    rateLimit: 4_000,
   },
   {
     name: 'airplanes-live',
-    url: 'https://api.airplanes.live/v2/point/50/10/250',
+    url: 'https://api.airplanes.live/v2/point/46/2/1200',
     normalize: (d) => normalizeReadsB(d as ReadsBResponse),
-    rateLimit: 5_000,
+    rateLimit: 4_000,
   },
   {
     name: 'opensky',
     url: 'https://opensky-network.org/api/states/all',
     normalize: (d) => normalizeOpenSky(d as OpenSkyResponse),
-    rateLimit: 10_000,
+    rateLimit: 12_000,
   },
 ];
 
@@ -54,6 +54,54 @@ export function getStats(): AggregatorStats {
 
 export function setUpdateCallback(cb: (flights: ADSBFlight[], removed: string[]) => void): void {
   onUpdate = cb;
+}
+
+function applySnapshot(sourceName: DataSource, flights: ADSBFlight[]): void {
+  // Update cache
+  for (const f of flights) {
+    const existing = flightCache.get(f.icao24);
+    if (existing && existing.trail.length > 0) {
+      f.trail = existing.trail;
+    }
+    flightCache.set(f);
+
+    if (f.latitude && f.longitude) {
+      if (!existing ||
+          Math.abs(existing.latitude - f.latitude) > 0.001 ||
+          Math.abs(existing.longitude - f.longitude) > 0.001) {
+        insertTrailPoint(f.icao24, f.latitude, f.longitude, f.altitude, f.timestamp);
+      }
+    }
+  }
+
+  const removed = flightCache.evictStale();
+
+  stats.totalFlights = flightCache.size;
+  stats.dataSource = sourceName;
+  stats.lastUpdate = Date.now();
+  messageCount += flights.length;
+
+  const mpsElapsed = (Date.now() - mpsWindowStart) / 1000;
+  if (mpsElapsed >= 5) {
+    stats.messagesPerSecond = Math.round(messageCount / mpsElapsed);
+    messageCount = 0;
+    mpsWindowStart = Date.now();
+  }
+
+  if (onUpdate) onUpdate(flights, removed);
+}
+
+async function primeInitialSnapshot(): Promise<void> {
+  const bootstrapSource = sources.find((source) => source.name === 'opensky');
+  if (!bootstrapSource) return;
+
+  try {
+    const flights = await fetchFromSource(bootstrapSource);
+    applySnapshot(bootstrapSource.name, flights);
+    console.log(`[aggregator] Primed cache with ${flights.length} flights from ${bootstrapSource.name}`);
+  } catch (err) {
+    console.warn(`[aggregator] Initial prime failed for ${bootstrapSource.name}:`, (err as Error).message);
+  }
 }
 
 async function fetchFromSource(source: SourceConfig): Promise<ADSBFlight[]> {
@@ -87,43 +135,7 @@ async function poll(): Promise<void> {
   try {
     const flights = await fetchFromSource(source);
     lastFetchTime = Date.now();
-
-    // Update cache
-    for (const f of flights) {
-      const existing = flightCache.get(f.icao24);
-      // Merge trail from existing
-      if (existing && existing.trail.length > 0) {
-        f.trail = existing.trail;
-      }
-      flightCache.set(f);
-
-      // Store trail point if position changed significantly
-      if (f.latitude && f.longitude) {
-        if (!existing ||
-            Math.abs(existing.latitude - f.latitude) > 0.001 ||
-            Math.abs(existing.longitude - f.longitude) > 0.001) {
-          insertTrailPoint(f.icao24, f.latitude, f.longitude, f.altitude, f.timestamp);
-        }
-      }
-    }
-
-    // Evict stale aircraft
-    const removed = flightCache.evictStale();
-
-    // Update stats
-    stats.totalFlights = flightCache.size;
-    stats.dataSource = source.name;
-    stats.lastUpdate = Date.now();
-    messageCount += flights.length;
-    const mpsElapsed = (Date.now() - mpsWindowStart) / 1000;
-    if (mpsElapsed >= 5) {
-      stats.messagesPerSecond = Math.round(messageCount / mpsElapsed);
-      messageCount = 0;
-      mpsWindowStart = Date.now();
-    }
-
-    // Notify listeners
-    if (onUpdate) onUpdate(flights, removed);
+    applySnapshot(source.name, flights);
 
     // Reset to primary on success if we were on fallback
     if (activeSourceIndex > 0) {
@@ -148,6 +160,7 @@ function schedulePoll(delay: number): void {
 
 export function startAggregator(): void {
   console.log(`[aggregator] Starting with primary source: ${sources[0].name}`);
+  void primeInitialSnapshot();
   poll();
 }
 

@@ -11,7 +11,7 @@
 
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import { point } from '@turf/helpers';
-import type { Polygon, MultiPolygon, Feature } from '@turf/helpers';
+import type { Polygon, MultiPolygon, Feature } from 'geojson';
 
 export interface FIRWorkerRequest {
   flights: Array<{ icao24: string; lat: number; lng: number }>;

@@ -13,7 +13,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import { point } from '@turf/helpers';
-import type { Feature, Polygon, MultiPolygon } from '@turf/helpers';
+import type { Feature, Polygon, MultiPolygon } from 'geojson';
 import { useFIRStore } from '../stores/firStore';
 import { getFIRFeature, getFIRBounds } from '../lib/firService';
 import type { ADSBFlight } from '../types/flight';
@@ -123,7 +123,7 @@ export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
       return flights.filter((f) => workerResult.has(f.icao24));
     }
 
-    // Worker hasn't responded yet — show all (first render only)
-    return flights;
+    // Worker hasn't responded yet — show nothing until filter settles
+    return [];
   }, [flights, selectedFIRData, workerResult, inlineFilter]);
 }

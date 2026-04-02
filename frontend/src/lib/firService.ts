@@ -8,13 +8,18 @@
  * If the remote fetch fails, falls back to the built-in minimal FIR set.
  */
 
-import type { FeatureCollection, Polygon, MultiPolygon } from '@turf/helpers';
-import type { FIRFeature, FIRProperties, FIRBounds } from '../types/fir';
+import type { FeatureCollection, Polygon, MultiPolygon } from 'geojson';
+import type { FIRFeature, FIRBounds } from '../types/fir';
 import bbox from '@turf/bbox';
 
-// ---- Remote source (public, free, no auth) ----
-const FIR_GEOJSON_URL =
-  'https://raw.githubusercontent.com/maiuswong/World-FIR-Boundaries/main/firs.json';
+// ---- FIR sources (local bundled first, remote fallback) ----
+const FIR_GEOJSON_URLS = [
+  '/data/firs.geojson',
+];
+
+// Fallback: country boundaries as coarse regions if FIR dataset is unavailable.
+const COUNTRY_GEOJSON_URL =
+  'https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson';
 
 // ---- In-memory cache ----
 let cachedFeatures: FIRFeature[] | null = null;
@@ -42,16 +47,65 @@ function normalise(raw: FeatureCollection): FIRFeature[] {
 
     const props = f.properties ?? {};
     const id: string =
-      props.ICAOCODE ?? props.icaoCode ?? props.FIRname ?? props.id ?? `FIR_${out.length}`;
+      props.ICAOCODE ??
+      props.icaoCode ??
+      props.FIRname ??
+      props.FIR ??
+      props.id ??
+      `FIR_${out.length}`;
     const name: string =
-      props.FIRname ?? props.NAME ?? props.name ?? id;
+      props.FIRname ??
+      props.FIR ??
+      props.NAME ??
+      props.name ??
+      props.Name ??
+      id;
     const country: string =
-      props.Country ?? props.country ?? props.STATE ?? '';
+      props.Country ??
+      props.country ??
+      props.COUNTRY ??
+      props.STATE ??
+      props.state ??
+      props.admin ??
+      '';
 
     const feature: FIRFeature = {
       type: 'Feature',
       geometry: f.geometry as Polygon | MultiPolygon,
       properties: { id, name, country },
+    };
+
+    out.push(feature);
+    boundsCache.set(id, computeBounds(feature));
+  }
+
+  return out;
+}
+
+/**
+ * Fallback normalizer that treats each country polygon as a coarse FIR region.
+ */
+function normaliseCountryFallback(raw: FeatureCollection): FIRFeature[] {
+  const out: FIRFeature[] = [];
+
+  for (const f of raw.features) {
+    if (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon') continue;
+
+    const props = f.properties ?? {};
+    const country = String(props.name ?? props.admin ?? props.name_long ?? '').trim();
+    if (!country) continue;
+
+    const code = String(props.iso_a2 ?? props.postal ?? props.iso_a3 ?? `C${out.length}`).trim();
+    const id = `${code.toUpperCase()}-FIR`;
+
+    const feature: FIRFeature = {
+      type: 'Feature',
+      geometry: f.geometry as Polygon | MultiPolygon,
+      properties: {
+        id,
+        name: `${country} FIR`,
+        country,
+      },
     };
 
     out.push(feature);
@@ -70,16 +124,38 @@ export async function fetchFIRFeatures(): Promise<FIRFeature[]> {
 
   if (!fetchPromise) {
     fetchPromise = (async () => {
+      boundsCache = new Map<string, FIRBounds>();
+
+      for (const url of FIR_GEOJSON_URLS) {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json: FeatureCollection = await res.json();
+          const normalised = normalise(json);
+          if (normalised.length > 0) {
+            cachedFeatures = normalised;
+            console.log(`[fir] Loaded ${cachedFeatures.length} FIR boundaries from ${url}`);
+            fetchPromise = null;
+            return cachedFeatures;
+          }
+        } catch (err) {
+          console.warn(`[fir] Failed to fetch FIR data from ${url}`, err);
+        }
+      }
+
       try {
-        const res = await fetch(FIR_GEOJSON_URL);
+        const res = await fetch(COUNTRY_GEOJSON_URL);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json: FeatureCollection = await res.json();
-        cachedFeatures = normalise(json);
-        console.log(`[fir] Loaded ${cachedFeatures.length} FIR boundaries`);
+        cachedFeatures = normaliseCountryFallback(json);
+        console.warn(
+          `[fir] FIR dataset unavailable; loaded ${cachedFeatures.length} country-based fallback regions`,
+        );
       } catch (err) {
-        console.warn('[fir] Failed to fetch remote FIR data, using empty set', err);
+        console.warn('[fir] Failed to load FIR and fallback datasets, using empty set', err);
         cachedFeatures = [];
       }
+
       fetchPromise = null;
       return cachedFeatures;
     })();

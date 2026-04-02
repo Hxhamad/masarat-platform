@@ -1,0 +1,469 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-8.0,49.0],[-5.0,49.0],[-5.0,51.0],[1.5,51.0],[2.0,51.5],[2.0,53.5],[0.0,55.0],[-3.0,55.0],[-5.5,55.0],[-8.0,55.0],[-8.0,49.0]]]
+      },
+      "properties": {"ICAOCODE":"EGTT","FIRname":"London FIR","Country":"United Kingdom"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-8.0,55.0],[-5.5,55.0],[-3.0,55.0],[0.0,55.0],[2.0,55.0],[4.0,57.0],[4.5,58.5],[3.5,61.0],[0.0,61.5],[-3.0,61.5],[-12.0,60.0],[-12.0,57.0],[-8.0,55.0]]]
+      },
+      "properties": {"ICAOCODE":"EGPX","FIRname":"Scottish FIR","Country":"United Kingdom"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-15.0,48.5],[-15.0,51.0],[-15.0,54.0],[-12.0,57.0],[-12.0,60.0],[-20.0,61.0],[-20.0,54.0],[-15.0,48.5]]]
+      },
+      "properties": {"ICAOCODE":"EISN","FIRname":"Shannon FIR","Country":"Ireland"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[0.5,47.0],[2.5,47.0],[3.5,47.5],[4.0,48.0],[3.5,49.5],[2.5,51.0],[1.5,51.0],[-1.0,49.0],[-1.5,48.5],[0.5,47.0]]]
+      },
+      "properties": {"ICAOCODE":"LFFF","FIRname":"Paris FIR","Country":"France"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-8.0,46.5],[-8.0,48.5],[-5.0,49.0],[-1.5,48.5],[-1.0,49.0],[0.5,47.0],[-1.0,46.0],[-2.0,45.0],[-6.0,44.0],[-8.0,44.0],[-8.0,46.5]]]
+      },
+      "properties": {"ICAOCODE":"LFRR","FIRname":"Brest FIR","Country":"France"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-6.0,44.0],[-2.0,45.0],[-1.0,46.0],[0.5,47.0],[2.5,47.0],[2.0,45.5],[1.5,44.5],[0.0,43.0],[-1.5,42.5],[-2.0,43.0],[-6.0,44.0]]]
+      },
+      "properties": {"ICAOCODE":"LFBB","FIRname":"Bordeaux FIR","Country":"France"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[2.0,45.5],[2.5,47.0],[3.5,47.5],[4.5,46.5],[5.5,46.0],[6.0,44.0],[7.5,43.5],[8.5,42.0],[5.0,41.5],[3.5,42.0],[1.5,44.5],[2.0,45.5]]]
+      },
+      "properties": {"ICAOCODE":"LFMM","FIRname":"Marseille FIR","Country":"France"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[2.5,51.0],[3.5,49.5],[4.0,48.0],[3.5,47.5],[4.5,46.5],[5.5,46.0],[6.0,47.0],[6.0,48.5],[5.5,49.5],[5.0,50.0],[3.5,51.0],[2.5,51.0]]]
+      },
+      "properties": {"ICAOCODE":"LFEE","FIRname":"Reims FIR","Country":"France"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[6.0,48.5],[6.0,47.0],[7.5,47.0],[8.5,47.5],[9.5,47.5],[10.0,48.5],[12.0,49.5],[13.5,50.0],[12.0,51.0],[9.5,51.5],[7.5,51.0],[6.5,50.0],[6.0,48.5]]]
+      },
+      "properties": {"ICAOCODE":"EDGG","FIRname":"Langen FIR","Country":"Germany"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[4.0,53.5],[2.0,53.5],[2.0,55.0],[4.0,57.0],[4.5,58.5],[7.0,58.0],[8.5,57.0],[9.0,56.0],[9.5,54.5],[8.5,54.0],[8.0,53.5],[6.5,53.5],[6.5,52.5],[7.0,51.5],[7.5,51.0],[6.5,50.0],[5.0,50.0],[4.0,51.5],[4.0,53.5]]]
+      },
+      "properties": {"ICAOCODE":"EDWW","FIRname":"Bremen FIR","Country":"Germany"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[9.5,47.5],[10.0,48.5],[12.0,49.5],[13.5,50.0],[14.0,49.0],[13.5,48.0],[13.0,47.5],[12.0,47.0],[10.5,47.0],[9.5,47.5]]]
+      },
+      "properties": {"ICAOCODE":"EDMM","FIRname":"München FIR","Country":"Germany"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[2.5,49.5],[3.5,49.5],[5.5,49.5],[6.0,49.5],[6.0,50.0],[6.5,50.0],[5.0,50.0],[4.0,51.5],[2.5,51.0],[2.5,49.5]]]
+      },
+      "properties": {"ICAOCODE":"EBBU","FIRname":"Brussels FIR","Country":"Belgium"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[2.0,51.5],[4.0,51.5],[4.0,53.5],[6.5,53.5],[7.0,51.5],[6.5,50.0],[5.0,50.0],[3.5,51.0],[2.5,51.0],[2.0,51.5]]]
+      },
+      "properties": {"ICAOCODE":"EHAA","FIRname":"Amsterdam FIR","Country":"Netherlands"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[5.5,46.0],[6.0,47.0],[7.5,47.0],[8.5,47.5],[9.5,47.5],[10.5,47.0],[10.5,46.5],[9.5,46.0],[8.0,45.8],[5.5,46.0]]]
+      },
+      "properties": {"ICAOCODE":"LSAS","FIRname":"Switzerland FIR","Country":"Switzerland"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.5,47.0],[12.0,47.0],[13.0,47.5],[14.5,47.5],[17.0,47.5],[17.0,48.5],[16.5,49.0],[14.0,49.0],[13.5,48.0],[12.0,47.5],[10.5,47.0]]]
+      },
+      "properties": {"ICAOCODE":"LOVV","FIRname":"Wien FIR","Country":"Austria"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[8.0,45.8],[9.5,46.0],[10.5,46.5],[12.0,47.0],[12.0,47.5],[13.0,47.5],[13.5,46.5],[13.5,45.5],[12.5,44.5],[11.0,44.0],[9.0,44.5],[7.5,44.5],[7.5,43.5],[8.0,43.0],[9.5,43.5],[10.0,44.0],[11.0,44.0],[10.0,42.5],[8.5,42.0],[7.5,43.5],[6.0,44.0],[8.0,45.8]]]
+      },
+      "properties": {"ICAOCODE":"LIMM","FIRname":"Milano FIR","Country":"Italy"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.0,42.5],[11.0,44.0],[12.5,44.5],[14.0,43.0],[15.0,42.0],[15.5,41.0],[14.5,40.5],[13.5,41.0],[12.0,42.0],[10.0,42.5]]]
+      },
+      "properties": {"ICAOCODE":"LIRR","FIRname":"Roma FIR","Country":"Italy"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[14.5,40.5],[15.5,41.0],[16.0,42.0],[18.5,42.0],[19.5,40.5],[20.0,39.0],[18.5,38.0],[16.0,37.5],[15.0,36.5],[12.0,36.0],[12.0,37.5],[13.5,38.5],[14.0,39.5],[14.5,40.5]]]
+      },
+      "properties": {"ICAOCODE":"LIBB","FIRname":"Brindisi FIR","Country":"Italy"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-12.0,36.0],[-9.0,36.0],[-5.5,36.0],[-2.0,36.0],[0.0,37.5],[-1.5,40.0],[-2.0,43.0],[-1.5,42.5],[-9.0,43.5],[-10.0,42.5],[-12.0,40.0],[-12.0,36.0]]]
+      },
+      "properties": {"ICAOCODE":"LECM","FIRname":"Madrid FIR","Country":"Spain"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[0.0,37.5],[-2.0,36.0],[0.0,36.0],[1.5,38.0],[2.5,39.0],[4.5,40.0],[3.5,42.0],[1.5,44.5],[0.0,43.0],[-1.5,40.0],[0.0,37.5]]]
+      },
+      "properties": {"ICAOCODE":"LECB","FIRname":"Barcelona FIR","Country":"Spain"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-18.0,33.0],[-18.0,39.0],[-12.0,40.0],[-10.0,42.5],[-9.0,43.5],[-8.0,44.0],[-8.0,46.5],[-15.0,48.5],[-20.0,47.0],[-20.0,33.0],[-18.0,33.0]]]
+      },
+      "properties": {"ICAOCODE":"LPPC","FIRname":"Lisboa FIR","Country":"Portugal"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[8.5,54.0],[9.5,54.5],[9.0,56.0],[8.5,57.0],[10.0,57.5],[12.0,56.0],[12.5,55.5],[12.5,54.5],[11.0,54.0],[8.5,54.0]]]
+      },
+      "properties": {"ICAOCODE":"EKDK","FIRname":"København FIR","Country":"Denmark"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.0,57.5],[12.0,56.0],[12.5,55.5],[14.0,55.5],[16.0,56.0],[19.0,58.0],[18.5,60.0],[17.0,62.0],[15.0,64.0],[14.0,66.0],[17.0,68.0],[20.0,69.0],[24.0,68.5],[24.0,67.0],[21.0,65.5],[18.0,62.0],[19.0,58.0],[14.0,55.5],[12.5,55.5],[12.0,56.0],[10.0,57.5]]]
+      },
+      "properties": {"ICAOCODE":"ESOS","FIRname":"Sweden FIR","Country":"Sweden"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[20.0,59.0],[21.0,59.5],[24.0,59.5],[28.0,60.0],[30.0,62.0],[30.0,65.0],[29.0,68.0],[26.0,69.5],[24.0,68.5],[20.0,69.0],[20.0,65.5],[21.0,62.0],[20.0,59.0]]]
+      },
+      "properties": {"ICAOCODE":"EFIN","FIRname":"Helsinki FIR","Country":"Finland"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[3.5,61.0],[4.5,58.5],[7.0,58.0],[8.5,57.0],[10.0,57.5],[14.0,66.0],[17.0,68.0],[20.0,69.0],[26.0,69.5],[26.0,71.5],[15.0,72.0],[5.0,66.0],[3.5,61.0]]]
+      },
+      "properties": {"ICAOCODE":"ENOR","FIRname":"Norge FIR","Country":"Norway"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[14.0,49.0],[16.5,49.0],[17.0,48.5],[17.0,47.5],[14.5,47.5],[13.5,48.0],[14.0,49.0]]]
+      },
+      "properties": {"ICAOCODE":"LKAA","FIRname":"Praha FIR","Country":"Czech Republic"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[14.0,49.0],[16.5,49.0],[18.5,49.5],[21.0,50.0],[24.0,50.5],[24.0,54.5],[19.5,54.5],[14.5,54.0],[14.0,53.5],[14.0,51.5],[14.0,49.0]]]
+      },
+      "properties": {"ICAOCODE":"EPWW","FIRname":"Warszawa FIR","Country":"Poland"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[16.5,48.5],[17.0,48.5],[18.5,49.5],[21.0,50.0],[22.5,49.0],[22.5,48.0],[21.0,46.5],[18.5,46.0],[16.5,46.5],[16.5,48.5]]]
+      },
+      "properties": {"ICAOCODE":"LHCC","FIRname":"Budapest FIR","Country":"Hungary"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[22.5,49.0],[24.0,49.0],[27.0,48.5],[30.0,46.0],[30.0,44.0],[29.0,43.5],[28.0,43.5],[26.0,44.0],[22.5,44.5],[22.5,46.0],[21.0,46.5],[22.5,48.0],[22.5,49.0]]]
+      },
+      "properties": {"ICAOCODE":"LRBB","FIRname":"Bucuresti FIR","Country":"Romania"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[19.5,40.5],[20.0,39.0],[20.5,38.0],[21.5,37.0],[23.0,36.0],[25.0,35.0],[27.0,35.5],[29.0,36.0],[29.0,38.0],[27.0,40.0],[26.0,41.0],[24.0,41.5],[22.0,41.0],[20.5,40.5],[19.5,40.5]]]
+      },
+      "properties": {"ICAOCODE":"LGGG","FIRname":"Athinai FIR","Country":"Greece"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[26.0,41.0],[27.0,40.0],[29.0,40.5],[29.0,38.0],[29.0,36.0],[30.0,36.0],[32.0,36.0],[36.0,36.0],[36.0,37.5],[36.5,39.0],[36.0,41.0],[33.0,42.0],[29.0,42.0],[26.0,41.0]]]
+      },
+      "properties": {"ICAOCODE":"LTAA","FIRname":"Ankara FIR","Country":"Turkey"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[29.0,42.0],[33.0,42.0],[36.0,41.0],[36.5,39.0],[36.0,37.5],[36.0,36.0],[32.0,36.0],[29.0,36.0],[29.0,38.0],[29.0,40.5],[29.0,42.0]]]
+      },
+      "properties": {"ICAOCODE":"LTBB","FIRname":"Istanbul FIR","Country":"Turkey"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[32.0,34.0],[34.0,34.0],[35.0,34.5],[34.0,36.0],[32.0,36.0],[32.0,34.0]]]
+      },
+      "properties": {"ICAOCODE":"LCCC","FIRname":"Nicosia FIR","Country":"Cyprus"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[25.0,22.0],[25.0,31.5],[29.5,31.5],[32.0,31.5],[34.5,29.5],[36.0,28.0],[36.0,22.0],[25.0,22.0]]]
+      },
+      "properties": {"ICAOCODE":"HECC","FIRname":"Cairo FIR","Country":"Egypt"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[34.0,29.0],[35.0,29.0],[36.0,32.5],[36.0,33.5],[35.5,33.5],[35.0,33.0],[34.5,32.0],[34.0,31.5],[34.0,29.0]]]
+      },
+      "properties": {"ICAOCODE":"LLLL","FIRname":"Tel Aviv FIR","Country":"Israel"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[34.0,33.0],[35.0,33.0],[35.5,33.5],[36.0,33.5],[36.0,34.5],[35.5,35.0],[34.0,35.0],[34.0,33.0]]]
+      },
+      "properties": {"ICAOCODE":"OLBB","FIRname":"Beirut FIR","Country":"Lebanon"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[36.0,32.5],[36.0,33.5],[36.0,34.5],[35.5,35.0],[36.0,36.0],[38.0,37.0],[42.0,37.0],[42.0,33.0],[39.0,33.0],[38.0,33.0],[36.0,32.5]]]
+      },
+      "properties": {"ICAOCODE":"OSTT","FIRname":"Damascus FIR","Country":"Syria"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[35.0,29.0],[36.0,32.5],[38.0,33.0],[39.0,33.0],[39.0,32.0],[38.5,30.0],[37.0,29.0],[35.0,29.0]]]
+      },
+      "properties": {"ICAOCODE":"OJAC","FIRname":"Amman FIR","Country":"Jordan"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[39.0,29.0],[42.0,33.0],[42.0,37.0],[45.0,37.5],[46.5,37.0],[48.0,35.5],[48.5,33.0],[48.5,30.0],[48.5,29.0],[46.0,29.0],[43.0,29.0],[39.0,29.0]]]
+      },
+      "properties": {"ICAOCODE":"ORBB","FIRname":"Baghdad FIR","Country":"Iraq"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[48.5,29.0],[48.0,30.0],[47.5,30.5],[47.0,30.0],[47.5,29.5],[48.0,29.0],[48.5,29.0]]]
+      },
+      "properties": {"ICAOCODE":"OKAC","FIRname":"Kuwait FIR","Country":"Kuwait"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[50.0,24.5],[50.0,26.5],[50.5,27.0],[50.5,28.5],[51.5,28.5],[51.0,26.5],[50.5,25.0],[50.0,24.5]]]
+      },
+      "properties": {"ICAOCODE":"OBBB","FIRname":"Bahrain FIR","Country":"Bahrain"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[51.5,22.5],[51.5,25.5],[54.0,25.0],[56.0,24.5],[56.5,25.5],[56.5,26.5],[54.5,27.0],[51.5,28.5],[50.5,27.0],[50.0,26.5],[51.5,25.5],[51.5,22.5]]]
+      },
+      "properties": {"ICAOCODE":"OMAE","FIRname":"Emirates FIR","Country":"United Arab Emirates"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[36.0,22.0],[36.0,28.0],[38.5,30.0],[39.0,32.0],[39.0,29.0],[43.0,29.0],[50.0,24.5],[50.0,22.0],[44.0,16.0],[36.0,16.0],[36.0,22.0]]]
+      },
+      "properties": {"ICAOCODE":"OEJD","FIRname":"Jeddah FIR","Country":"Saudi Arabia"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[48.5,35.5],[48.5,33.0],[48.5,30.0],[48.5,29.0],[51.5,28.5],[54.5,27.0],[56.5,26.5],[57.5,27.5],[60.5,25.5],[62.0,26.0],[62.0,33.0],[61.0,36.0],[57.0,38.0],[54.0,37.5],[50.0,38.0],[48.5,35.5]]]
+      },
+      "properties": {"ICAOCODE":"OIIX","FIRname":"Tehran FIR","Country":"Iran"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[13.5,45.5],[14.5,46.5],[16.5,46.5],[19.0,44.0],[19.0,43.0],[18.5,42.0],[16.0,42.0],[15.0,42.5],[13.5,45.5]]]
+      },
+      "properties": {"ICAOCODE":"LDZO","FIRname":"Zagreb FIR","Country":"Croatia"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[19.0,44.0],[22.5,44.5],[23.0,43.5],[22.5,42.5],[21.0,42.0],[20.0,41.5],[19.0,42.0],[18.5,42.0],[19.0,43.0],[19.0,44.0]]]
+      },
+      "properties": {"ICAOCODE":"LYBA","FIRname":"Beograd FIR","Country":"Serbia"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[22.5,44.5],[26.0,44.0],[28.0,43.5],[29.0,43.5],[28.0,42.0],[26.0,41.0],[24.0,41.5],[22.0,41.0],[22.5,42.5],[23.0,43.5],[22.5,44.5]]]
+      },
+      "properties": {"ICAOCODE":"LBSR","FIRname":"Sofia FIR","Country":"Bulgaria"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[14.0,55.5],[14.5,54.0],[20.0,54.5],[21.0,56.0],[24.0,56.5],[26.0,55.5],[26.0,54.0],[24.0,54.0],[22.5,54.0],[21.0,54.5],[19.5,54.5],[14.5,54.5],[14.0,55.5]]]
+      },
+      "properties": {"ICAOCODE":"EPMM","FIRname":"Baltic FIR","Country":"Baltic States"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[24.0,54.5],[26.0,54.0],[26.0,55.5],[28.0,56.0],[30.0,56.0],[32.0,55.0],[32.0,52.0],[30.0,50.0],[24.0,50.5],[24.0,54.5]]]
+      },
+      "properties": {"ICAOCODE":"UMMV","FIRname":"Minsk FIR","Country":"Belarus"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[22.5,48.0],[22.5,49.0],[24.0,49.0],[24.0,50.5],[30.0,50.0],[36.5,50.0],[40.0,49.5],[40.0,46.5],[38.0,46.0],[36.0,46.0],[34.0,46.0],[30.0,46.0],[28.0,45.0],[26.5,45.0],[24.0,46.0],[22.5,46.0],[22.5,48.0]]]
+      },
+      "properties": {"ICAOCODE":"UKBV","FIRname":"Kyiv FIR","Country":"Ukraine"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-5.5,36.0],[-5.5,33.0],[-2.0,33.0],[0.0,34.0],[3.0,36.5],[5.0,37.0],[8.5,37.0],[9.0,37.5],[8.0,38.0],[6.0,37.5],[3.0,37.0],[0.0,36.0],[-2.0,36.0],[-5.5,36.0]]]
+      },
+      "properties": {"ICAOCODE":"DAAA","FIRname":"Alger FIR","Country":"Algeria"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[8.5,37.0],[9.0,37.5],[11.0,37.5],[12.0,36.0],[12.0,34.5],[11.0,33.0],[9.0,33.0],[8.0,34.5],[8.0,37.0],[8.5,37.0]]]
+      },
+      "properties": {"ICAOCODE":"DTTC","FIRname":"Tunis FIR","Country":"Tunisia"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-5.5,33.0],[-5.5,36.0],[-9.0,36.0],[-13.0,36.0],[-13.0,33.0],[-13.0,27.0],[-9.0,27.0],[-2.0,27.0],[-2.0,33.0],[-5.5,33.0]]]
+      },
+      "properties": {"ICAOCODE":"GMMM","FIRname":"Casablanca FIR","Country":"Morocco"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[12.0,34.5],[12.0,36.0],[15.0,36.5],[16.0,34.0],[20.0,34.0],[25.0,31.5],[25.0,30.0],[20.0,30.0],[15.0,31.0],[12.0,34.5]]]
+      },
+      "properties": {"ICAOCODE":"HLLL","FIRname":"Tripoli FIR","Country":"Libya"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[16.5,46.5],[17.0,47.5],[17.0,48.5],[18.5,49.5],[18.5,49.0],[19.5,48.5],[21.0,48.5],[22.5,48.0],[22.5,46.0],[21.0,46.5],[18.5,46.0],[16.5,46.5]]]
+      },
+      "properties": {"ICAOCODE":"LZBB","FIRname":"Bratislava FIR","Country":"Slovakia"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[24.0,59.5],[28.0,60.0],[30.0,60.5],[30.0,59.5],[28.0,57.5],[24.5,57.5],[22.0,58.5],[22.0,59.5],[24.0,59.5]]]
+      },
+      "properties": {"ICAOCODE":"EETT","FIRname":"Tallinn FIR","Country":"Estonia"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[21.0,55.5],[24.0,56.5],[26.0,55.5],[28.0,56.0],[28.0,57.5],[24.5,57.5],[22.0,58.5],[20.0,58.0],[21.0,55.5]]]
+      },
+      "properties": {"ICAOCODE":"EVRR","FIRname":"Riga FIR","Country":"Latvia"}
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-30.0,61.0],[-30.0,68.0],[-15.0,68.0],[-12.0,66.5],[-12.0,63.5],[-20.0,61.0],[-30.0,61.0]]]
+      },
+      "properties": {"ICAOCODE":"BIRD","FIRname":"Reykjavik FIR","Country":"Iceland"}
+    }
+  ]
+}

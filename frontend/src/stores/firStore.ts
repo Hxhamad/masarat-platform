@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { FIRFeature } from '../types/fir';
-import { fetchFIRFeatures, getFIRList } from '../lib/firService';
+import { fetchFIRFeatures } from '../lib/firService';
 
 const MAX_SELECTED = 6;
 const STORAGE_KEY = 'masarat_selected_firs';

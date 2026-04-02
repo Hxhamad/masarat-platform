@@ -4,11 +4,52 @@ import type { WSMessage } from '../types/flight';
 
 export function useWebSocket() {
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimer = useRef<ReturnType<typeof setTimeout>>();
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bootstrapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasLoadedSnapshot = useRef(false);
   const { setFlights, removeFlights, setStats, setConnectionStatus } = useFlightStore();
 
   useEffect(() => {
     let mounted = true;
+
+    async function loadSnapshot() {
+      try {
+        const [flightsRes, statsRes] = await Promise.all([
+          fetch('/api/flights'),
+          fetch('/api/stats'),
+        ]);
+
+        if (!mounted) return;
+
+        if (flightsRes.ok) {
+          const flightsPayload = await flightsRes.json();
+          if (Array.isArray(flightsPayload.ac) && flightsPayload.ac.length > 0) {
+            setFlights(flightsPayload.ac);
+            hasLoadedSnapshot.current = true;
+          }
+        }
+
+        if (statsRes.ok) {
+          const statsPayload = await statsRes.json();
+          setStats(statsPayload);
+        }
+      } catch {
+        // Ignore bootstrap fetch failures; websocket remains primary.
+      }
+    }
+
+    async function bootstrapUntilLive() {
+      await loadSnapshot();
+
+      if (!mounted) return;
+
+      const wsConnected = wsRef.current?.readyState === WebSocket.OPEN;
+      if (!hasLoadedSnapshot.current || !wsConnected) {
+        bootstrapTimer.current = setTimeout(() => {
+          void bootstrapUntilLive();
+        }, 1500);
+      }
+    }
 
     function connect() {
       if (!mounted) return;
@@ -23,6 +64,7 @@ export function useWebSocket() {
       ws.onopen = () => {
         if (!mounted) return;
         setConnectionStatus('connected');
+        void loadSnapshot();
         console.log('[ws] Connected');
       };
 
@@ -32,6 +74,9 @@ export function useWebSocket() {
           const msg: WSMessage = JSON.parse(event.data);
           switch (msg.type) {
             case 'flight-update':
+              if (msg.data.length > 0) {
+                hasLoadedSnapshot.current = true;
+              }
               setFlights(msg.data);
               break;
             case 'flight-remove':
@@ -58,11 +103,17 @@ export function useWebSocket() {
       };
     }
 
+    void bootstrapUntilLive();
     connect();
 
     return () => {
       mounted = false;
-      clearTimeout(reconnectTimer.current);
+      if (reconnectTimer.current) {
+        clearTimeout(reconnectTimer.current);
+      }
+      if (bootstrapTimer.current) {
+        clearTimeout(bootstrapTimer.current);
+      }
       if (wsRef.current) {
         wsRef.current.close();
       }
