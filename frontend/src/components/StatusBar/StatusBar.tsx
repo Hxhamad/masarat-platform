@@ -1,8 +1,10 @@
 import { useFlightStore } from '../../stores/flightStore';
+import { useFIRStore } from '../../stores/firStore';
 import './StatusBar.css';
 
 export default function StatusBar() {
   const { stats, connectionStatus, flights } = useFlightStore();
+  const selectedFIRs = useFIRStore((s) => s.selectedFIRs);
 
   return (
     <div className="status-bar">
@@ -14,6 +16,12 @@ export default function StatusBar() {
         <div className="status-bar__item">
           <span className="status-bar__source">{stats.dataSource}</span>
         </div>
+        {selectedFIRs.length > 0 && (
+          <div className="status-bar__item">
+            <span className="status-bar__fir-badge">FIR</span>
+            <span className="status-bar__fir-codes">{selectedFIRs.join(' · ')}</span>
+          </div>
+        )}
       </div>
 
       <div className="status-bar__right">

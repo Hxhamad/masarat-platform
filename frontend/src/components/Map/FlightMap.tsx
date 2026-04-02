@@ -6,6 +6,8 @@ import type { ADSBFlight } from '../../types/flight';
 import { useFlightStore } from '../../stores/flightStore';
 import { useFilteredFlights } from '../../hooks/useFilteredFlights';
 import { useFIRFilter } from '../../hooks/useFIRFilter';
+import { useFIRStore } from '../../stores/firStore';
+import { getFIRBounds } from '../../lib/firService';
 import { flightTypeColor, formatAltitude, formatSpeed, displayCallsign } from '../../lib/utils';
 import { setMapInstance } from './mapRef';
 
@@ -41,11 +43,13 @@ export default function FlightMap() {
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const trailLayerRef = useRef<L.LayerGroup | null>(null);
+  const hasFittedRef = useRef(false);
 
   const filteredFlights = useFilteredFlights();
   const flights = useFIRFilter(filteredFlights);
   const selectedFlight = useFlightStore((s) => s.selectedFlight);
   const selectFlight = useFlightStore((s) => s.selectFlight);
+  const selectedFIRs = useFIRStore((s) => s.selectedFIRs);
 
   // Initialize map
   useEffect(() => {
@@ -83,6 +87,31 @@ export default function FlightMap() {
       mapRef.current = null;
     };
   }, []);
+
+  // Auto-fit map to selected FIR bounds
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || selectedFIRs.length === 0) return;
+    if (hasFittedRef.current) return; // Only fit on first load
+
+    let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
+    let hasBounds = false;
+
+    for (const firId of selectedFIRs) {
+      const b = getFIRBounds(firId);
+      if (!b) continue;
+      hasBounds = true;
+      if (b.minLat < minLat) minLat = b.minLat;
+      if (b.maxLat > maxLat) maxLat = b.maxLat;
+      if (b.minLng < minLng) minLng = b.minLng;
+      if (b.maxLng > maxLng) maxLng = b.maxLng;
+    }
+
+    if (hasBounds) {
+      map.fitBounds([[minLat, minLng], [maxLat, maxLng]], { padding: [40, 40] });
+      hasFittedRef.current = true;
+    }
+  }, [selectedFIRs]);
 
   // Update markers
   const updateMarkers = useCallback(() => {

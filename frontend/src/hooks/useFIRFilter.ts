@@ -1,9 +1,8 @@
 /**
- * useFIRFilter — Spatial filtering hook
+ * useFIRFilter — Spatial filtering hook (always active)
  *
- * When FIR layer is enabled and FIRs are selected, this hook filters the
- * flight list to only include aircraft physically inside the selected
- * FIR polygons.
+ * Filters the flight list to only include aircraft physically inside
+ * the selected FIR polygons. FIR selection is mandatory — no toggle.
  *
  * Performance:
  *  - <= WORKER_THRESHOLD flights: inline on main thread (no worker overhead)
@@ -23,14 +22,13 @@ import type { FIRWorkerRequest, FIRWorkerResponse } from '../lib/firFilterWorker
 const WORKER_THRESHOLD = 500;
 
 export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
-  const firLayerEnabled = useFIRStore((s) => s.firLayerEnabled);
   const selectedFIRs = useFIRStore((s) => s.selectedFIRs);
   const [workerResult, setWorkerResult] = useState<Set<string> | null>(null);
   const workerRef = useRef<Worker | null>(null);
 
   // Build FIR data for filtering (memoised on selection change)
   const selectedFIRData = useMemo(() => {
-    if (!firLayerEnabled || selectedFIRs.length === 0) return null;
+    if (selectedFIRs.length === 0) return null;
 
     return selectedFIRs
       .map((id) => {
@@ -40,7 +38,7 @@ export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
         return { id, geometry: feature.geometry, bounds };
       })
       .filter(Boolean) as FIRWorkerRequest['firs'];
-  }, [firLayerEnabled, selectedFIRs]);
+  }, [selectedFIRs]);
 
   // Inline filter for small flight counts
   const inlineFilter = useCallback(
@@ -110,9 +108,9 @@ export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
 
   // Return filtered flights
   return useMemo(() => {
-    // FIR filtering disabled or no FIRs selected → pass through
-    if (!firLayerEnabled || !selectedFIRData || selectedFIRData.length === 0) {
-      return flights;
+    // No FIRs selected → no aircraft shown
+    if (!selectedFIRData || selectedFIRData.length === 0) {
+      return [];
     }
 
     // Small set: inline
@@ -127,5 +125,5 @@ export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
 
     // Worker hasn't responded yet — show all (first render only)
     return flights;
-  }, [flights, firLayerEnabled, selectedFIRData, workerResult, inlineFilter]);
+  }, [flights, selectedFIRData, workerResult, inlineFilter]);
 }

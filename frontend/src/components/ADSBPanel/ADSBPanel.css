@@ -21,6 +21,24 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.adsb-panel__fir-label {
+  color: var(--accent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.adsb-panel__count {
+  flex-shrink: 0;
+  color: var(--text-muted);
 }
 
 .adsb-panel__list {

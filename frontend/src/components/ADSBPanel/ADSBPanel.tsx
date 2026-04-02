@@ -1,7 +1,10 @@
+import { useMemo } from 'react';
 import { useFilteredFlights } from '../../hooks/useFilteredFlights';
 import { useFIRFilter } from '../../hooks/useFIRFilter';
 import { useFlightStore } from '../../stores/flightStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useFIRStore } from '../../stores/firStore';
+import { getFIRList } from '../../lib/firService';
 import { flightTypeColor, formatAltitude, displayCallsign } from '../../lib/utils';
 import FIRPanel from './FIRPanel';
 import './ADSBPanel.css';
@@ -11,11 +14,22 @@ export default function ADSBPanel() {
   const flights = useFIRFilter(filteredFlights);
   const { selectedFlight, selectFlight } = useFlightStore();
   const { setInfoPanelOpen } = useUIStore();
+  const selectedFIRs = useFIRStore((s) => s.selectedFIRs);
 
   const handleSelect = (icao24: string) => {
     selectFlight(icao24);
     setInfoPanelOpen(true);
   };
+
+  // Build the FIR header label
+  const firLabel = useMemo(() => {
+    const firList = getFIRList();
+    const names = selectedFIRs.map((id) => {
+      const f = firList.find((fir) => fir.id === id);
+      return f?.id ?? id;
+    });
+    return names.join(' · ');
+  }, [selectedFIRs]);
 
   // Sort: selected first, then by callsign
   const sorted = [...flights].sort((a, b) => {
@@ -31,7 +45,8 @@ export default function ADSBPanel() {
     <div className="adsb-panel">
       <FIRPanel />
       <div className="adsb-panel__header">
-        Nearby — {flights.length} aircraft
+        <span className="adsb-panel__fir-label">{firLabel}</span>
+        <span className="adsb-panel__count">{flights.length} aircraft</span>
       </div>
       <div className="adsb-panel__list">
         {display.length === 0 ? (
