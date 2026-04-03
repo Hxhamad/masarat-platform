@@ -291,12 +291,20 @@ function buildCollection(rawFeatures) {
     if (!isFIRFeature(feature)) return;
 
     const normalized = normalizeFeature(feature, index);
+
+    // Filter out non-FIR entries (e.g. LOCAL ATS units that share type=10)
+    const nameUpper = normalized.properties.name.toUpperCase();
+    if (nameUpper.includes('LOCAL ATS') || nameUpper.includes('LOCAL ADVISORY')) return;
+
     const dedupeKey = `${normalized.properties.id}|${normalized.properties.name}`;
     if (seen.has(dedupeKey)) return;
 
     seen.add(dedupeKey);
     features.push(normalized);
   });
+
+  const countries = new Set(features.map((f) => f.properties.country).filter(Boolean));
+  console.log(`[openAIP] Built collection: ${features.length} FIR features, ${countries.size} countries`);
 
   return {
     type: 'FeatureCollection',
@@ -305,6 +313,7 @@ function buildCollection(rawFeatures) {
       airspaceType: 'FIR',
       generatedAt: new Date().toISOString(),
       featureCount: features.length,
+      countryCount: countries.size,
     },
     features,
   };

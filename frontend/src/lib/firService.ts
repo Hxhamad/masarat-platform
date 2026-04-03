@@ -100,6 +100,8 @@ function normalise(raw: FeatureCollection): FIRFeature[] {
       '';
     const country = resolveCountryName(countryCodeOrName);
 
+    if (!isTrueFIR(name)) continue;
+
     const feature: FIRFeature = {
       type: 'Feature',
       geometry: f.geometry as Polygon | MultiPolygon,
@@ -115,6 +117,36 @@ function normalise(raw: FeatureCollection): FIRFeature[] {
 
 function hasVerifiedFIRMetadata(raw: FIRFile): boolean {
   return safeString(raw.metadata?.airspaceType).toUpperCase() === 'FIR';
+}
+
+/** Reject non-FIR entries like LOCAL ATS units that share type=10 in openAIP */
+function isTrueFIR(name: string): boolean {
+  const upper = name.toUpperCase();
+  return !upper.includes('LOCAL ATS') && !upper.includes('LOCAL ADVISORY');
+}
+
+const MIN_FIR_FEATURES = 50;
+const MIN_FIR_COUNTRIES = 30;
+const REQUIRED_COUNTRIES = [
+  'United States',
+  'United Kingdom',
+  'Canada',
+  'Australia',
+  'Brazil',
+  'Japan',
+];
+
+/** Quality gate: a valid FIR dataset must meet minimum coverage thresholds */
+function passesQualityGate(features: FIRFeature[]): boolean {
+  if (features.length < MIN_FIR_FEATURES) return false;
+  const countries = new Set(features.map((f) => f.properties.country).filter(Boolean));
+  if (countries.size < MIN_FIR_COUNTRIES) return false;
+
+  for (const country of REQUIRED_COUNTRIES) {
+    if (!countries.has(country)) return false;
+  }
+
+  return true;
 }
 
 /**
@@ -171,6 +203,11 @@ export async function fetchFIRFeatures(): Promise<FIRFeature[]> {
           }
           const normalised = normalise(json);
           if (normalised.length > 0) {
+            if (!passesQualityGate(normalised)) {
+              const countries = new Set(normalised.map((f) => f.properties.country).filter(Boolean));
+              console.warn(`[fir] Local FIR artifact rejected: ${normalised.length} features, ${countries.size} countries (need ${MIN_FIR_FEATURES}+ features, ${MIN_FIR_COUNTRIES}+ countries)`);
+              throw new Error('Local FIR artifact failed quality gate');
+            }
             cachedFeatures = normalised;
             console.log(`[fir] Loaded ${cachedFeatures.length} FIR boundaries from ${url}`);
             fetchPromise = null;

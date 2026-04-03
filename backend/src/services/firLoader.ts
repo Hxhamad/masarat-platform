@@ -28,7 +28,18 @@ let loaded = false;
 const LOCAL_FIR_PATH = path.join(__dirname, '..', '..', '..', 'frontend', 'public', 'data', 'firs.geojson');
 
 const REMOTE_FIR_SOURCES = [
-  'https://raw.githubusercontent.com/maiuswong/World-FIR-Boundaries/main/firs.json',
+  'https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson',
+];
+
+const MIN_FIR_FEATURES = 50;
+const MIN_FIR_COUNTRIES = 30;
+const REQUIRED_COUNTRIES = [
+  'United States',
+  'United Kingdom',
+  'Canada',
+  'Australia',
+  'Brazil',
+  'Japan',
 ];
 
 function computeBounds(feature: FIRFeature): FIRBounds {
@@ -59,6 +70,12 @@ function resolveCountryName(value: unknown): string {
   return raw;
 }
 
+/** Reject non-FIR entries like LOCAL ATS units */
+function isTrueFIR(name: string): boolean {
+  const upper = name.toUpperCase();
+  return !upper.includes('LOCAL ATS') && !upper.includes('LOCAL ADVISORY');
+}
+
 /** Normalise heterogeneous GeoJSON property names into our standard FIRProperties. */
 function normalizeProperties(props: Record<string, unknown>): { id: string; name: string; country: string } {
   const id = safeString(props.id ?? props.ICAOCODE ?? props.icao ?? props.FIRname);
@@ -82,9 +99,16 @@ export async function loadFIRData(): Promise<void> {
     if (geojson.features && Array.isArray(geojson.features)) {
       parseFIRCollection(geojson);
       if (firEntries.size > 0) {
-        loaded = true;
-        console.log(`[fir] Loaded ${firEntries.size} FIR boundaries from local file`);
-        return;
+        const countries = new Set(Array.from(firEntries.values()).map((e) => e.feature.properties.country).filter(Boolean));
+        const hasRequiredCountries = REQUIRED_COUNTRIES.every((country) => countries.has(country));
+        if (firEntries.size < MIN_FIR_FEATURES || countries.size < MIN_FIR_COUNTRIES || !hasRequiredCountries) {
+          console.warn(`[fir] Local FIR artifact rejected: ${firEntries.size} features, ${countries.size} countries (need ${MIN_FIR_FEATURES}+ features, ${MIN_FIR_COUNTRIES}+ countries)`);
+          firEntries = new Map();
+        } else {
+          loaded = true;
+          console.log(`[fir] Loaded ${firEntries.size} FIR boundaries from local file`);
+          return;
+        }
       }
     }
   } catch (err) {
@@ -106,11 +130,11 @@ export async function loadFIRData(): Promise<void> {
         throw new Error('Invalid GeoJSON: no features array');
       }
 
-      parseFIRCollection(geojson);
+      parseFIRCollectionCountryFallback(geojson);
 
       if (firEntries.size > 0) {
         loaded = true;
-        console.log(`[fir] Loaded ${firEntries.size} FIR boundaries from ${url}`);
+        console.warn(`[fir] FIR dataset unavailable; loaded ${firEntries.size} country-based fallback regions from ${url}`);
         return;
       }
     } catch (err) {
@@ -129,7 +153,30 @@ function parseFIRCollection(geojson: FeatureCollection): void {
     const feature = raw as FIRFeature;
     const { id, name, country } = normalizeProperties(feature.properties as unknown as Record<string, unknown>);
     if (!id) continue;
+    if (!isTrueFIR(name)) continue;
 
+    feature.properties = { id, name, country };
+    const bounds = computeBounds(feature);
+    firEntries.set(id, { feature, bounds });
+  }
+}
+
+/** Parse country-boundaries GeoJSON as coarse FIR regions (fallback) */
+function parseFIRCollectionCountryFallback(geojson: FeatureCollection): void {
+  firEntries = new Map();
+  for (const raw of geojson.features) {
+    const geomType = raw.geometry?.type;
+    if (geomType !== 'Polygon' && geomType !== 'MultiPolygon') continue;
+
+    const props = (raw.properties ?? {}) as Record<string, unknown>;
+    const country = safeString(props.name ?? props.admin ?? props.name_long);
+    if (!country) continue;
+
+    const code = safeString(props.iso_a2 ?? props.postal ?? props.iso_a3 ?? `C${firEntries.size}`).toUpperCase();
+    const id = `${code}-FIR`;
+    const name = `${country} FIR`;
+
+    const feature = raw as FIRFeature;
     feature.properties = { id, name, country };
     const bounds = computeBounds(feature);
     firEntries.set(id, { feature, bounds });

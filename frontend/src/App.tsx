@@ -13,10 +13,6 @@ export default function App() {
   useWebSocket();
   const firSetupComplete = useFIRStore((s) => s.firSetupComplete);
 
-  if (!firSetupComplete) {
-    return <FIRSelectionModal />;
-  }
-
   return (
     <>
       <Header />
@@ -26,6 +22,7 @@ export default function App() {
       <ADSBPanel />
       <InfoPanel />
       <StatusBar />
+      {!firSetupComplete && <FIRSelectionModal />}
     </>
   );
 }

@@ -9,8 +9,6 @@ import { useFIRStore } from '../../stores/firStore';
 import { getFIRList } from '../../lib/firService';
 import './FIRSelectionModal.css';
 
-const MAX_DISPLAY = 80;
-
 export default function FIRSelectionModal() {
   const {
     loading,
@@ -33,7 +31,7 @@ export default function FIRSelectionModal() {
   // Filter the FIR list
   const firOptions = useMemo(() => {
     const all = getFIRList();
-    if (!firSearchQuery.trim()) return all.slice(0, MAX_DISPLAY);
+    if (!firSearchQuery.trim()) return all;
 
     const q = firSearchQuery.toLowerCase();
     return all
@@ -42,8 +40,7 @@ export default function FIRSelectionModal() {
           f.id.toLowerCase().includes(q) ||
           f.name.toLowerCase().includes(q) ||
           f.country.toLowerCase().includes(q),
-      )
-      .slice(0, MAX_DISPLAY);
+      );
   }, [firSearchQuery]);
 
   const selectedSet = useMemo(() => new Set(selectedFIRs), [selectedFIRs]);

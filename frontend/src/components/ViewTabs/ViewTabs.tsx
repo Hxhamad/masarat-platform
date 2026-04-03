@@ -1,0 +1,27 @@
+import { useHealthStore } from '../../stores/healthStore';
+import './ViewTabs.css';
+
+const tabs = [
+  { id: 'flights' as const, label: 'Flights' },
+  { id: 'health' as const, label: 'FIR Health' },
+  { id: 'leaderboard' as const, label: 'Leaderboard' },
+];
+
+export default function ViewTabs() {
+  const viewMode = useHealthStore((s) => s.viewMode);
+  const setViewMode = useHealthStore((s) => s.setViewMode);
+
+  return (
+    <div className="view-tabs">
+      {tabs.map((t) => (
+        <button
+          key={t.id}
+          className={`view-tabs__tab ${viewMode === t.id ? 'view-tabs__tab--active' : ''}`}
+          onClick={() => setViewMode(t.id)}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+}

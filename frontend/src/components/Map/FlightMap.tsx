@@ -190,7 +190,7 @@ export default function FlightMap() {
       baseLayers[0];
 
     baseLayerInstances[defaultBaseLayer.name].addTo(map);
-    L.control.layers(baseLayerInstances, undefined, { position: 'topleft', collapsed: false }).addTo(map);
+    L.control.layers(baseLayerInstances, undefined, { position: 'topright', collapsed: false }).addTo(map);
 
     trailLayerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;

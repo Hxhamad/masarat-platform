@@ -2,16 +2,21 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import compress from '@fastify/compress';
 import { initDatabase, closeDatabase, cleanupOldTrails } from './db/sqlite.js';
+import { initHealthTables, cleanupOldHealth } from './db/healthStore.js';
 import { initWebSocket } from './ws/flightHandler.js';
 import { startAggregator, stopAggregator } from './services/adsbAggregator.js';
+import { loadFIRData } from './services/firLoader.js';
 import { flightRoutes } from './routes/flights.js';
 import { statsRoutes } from './routes/stats.js';
+import { firHealthRoutes } from './routes/firHealth.js';
+import { startHealthPoller } from './services/healthPoller.js';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 
 async function start(): Promise<void> {
   // Initialize SQLite
   initDatabase();
+  initHealthTables();
   console.log('[db] SQLite initialized (WAL mode)');
 
   // Create Fastify
@@ -23,6 +28,7 @@ async function start(): Promise<void> {
   // Register REST routes
   await app.register(flightRoutes);
   await app.register(statsRoutes);
+  await app.register(firHealthRoutes);
 
   // Health check
   app.get('/api/health', async () => ({ status: 'ok', timestamp: Date.now() }));
@@ -38,10 +44,18 @@ async function start(): Promise<void> {
   // Start ADS-B data aggregator
   startAggregator();
 
+  // Load global FIR boundary data
+  loadFIRData().then(() => {
+    // Start periodic health computation after FIR data is ready
+    startHealthPoller();
+  });
+
   // Periodic trail cleanup every hour
   const cleanupInterval = setInterval(() => {
     const removed = cleanupOldTrails();
     if (removed > 0) console.log(`[db] Cleaned up ${removed} old trail points`);
+    const healthRemoved = cleanupOldHealth();
+    if (healthRemoved > 0) console.log(`[db] Cleaned up ${healthRemoved} old health snapshots`);
   }, 3_600_000);
 
   // Graceful shutdown
