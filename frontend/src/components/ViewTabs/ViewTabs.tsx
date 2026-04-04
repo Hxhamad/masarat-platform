@@ -12,10 +12,12 @@ export default function ViewTabs() {
   const setViewMode = useHealthStore((s) => s.setViewMode);
 
   return (
-    <div className="view-tabs">
+    <div className="view-tabs" role="tablist" aria-label="View mode">
       {tabs.map((t) => (
         <button
           key={t.id}
+          role="tab"
+          aria-selected={viewMode === t.id}
           className={`view-tabs__tab ${viewMode === t.id ? 'view-tabs__tab--active' : ''}`}
           onClick={() => setViewMode(t.id)}
         >

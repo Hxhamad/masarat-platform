@@ -355,6 +355,32 @@ async function main() {
     throw new Error('No FIR features found. Use an authenticated API key or a real Airspaces World export filtered from openAIP.');
   }
 
+  // Quality gate — matches runtime gates in firService.ts and firLoader.ts
+  const MIN_FIR_FEATURES = 50;
+  const MIN_FIR_COUNTRIES = 30;
+  const REQUIRED_COUNTRIES = ['United States', 'United Kingdom', 'Canada', 'Australia', 'Brazil', 'Japan'];
+
+  const countries = new Set(collection.features.map((f) => f.properties.country).filter(Boolean));
+  const missing = REQUIRED_COUNTRIES.filter((c) => !countries.has(c));
+
+  if (collection.features.length < MIN_FIR_FEATURES) {
+    console.error(`[openAIP] Quality gate FAILED: only ${collection.features.length} features (need ${MIN_FIR_FEATURES})`);
+    process.exitCode = 1;
+    return;
+  }
+  if (countries.size < MIN_FIR_COUNTRIES) {
+    console.error(`[openAIP] Quality gate FAILED: only ${countries.size} countries (need ${MIN_FIR_COUNTRIES})`);
+    process.exitCode = 1;
+    return;
+  }
+  if (missing.length > 0) {
+    console.error(`[openAIP] Quality gate FAILED: missing required countries: ${missing.join(', ')}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(`[openAIP] Quality gate passed: ${collection.features.length} features, ${countries.size} countries`);
+
   const outputPath = await writeCollection(args.output, collection);
   console.log(`[openAIP] Wrote ${collection.features.length} FIR features to ${outputPath}`);
 }

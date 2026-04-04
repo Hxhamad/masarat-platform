@@ -102,7 +102,11 @@ export async function loadFIRData(): Promise<void> {
         const countries = new Set(Array.from(firEntries.values()).map((e) => e.feature.properties.country).filter(Boolean));
         const hasRequiredCountries = REQUIRED_COUNTRIES.every((country) => countries.has(country));
         if (firEntries.size < MIN_FIR_FEATURES || countries.size < MIN_FIR_COUNTRIES || !hasRequiredCountries) {
-          console.warn(`[fir] Local FIR artifact rejected: ${firEntries.size} features, ${countries.size} countries (need ${MIN_FIR_FEATURES}+ features, ${MIN_FIR_COUNTRIES}+ countries)`);
+          const missing = REQUIRED_COUNTRIES.filter((c) => !countries.has(c));
+          console.warn(
+            `[fir] Local FIR artifact rejected: ${firEntries.size} features, ${countries.size} countries (need ${MIN_FIR_FEATURES}+ features, ${MIN_FIR_COUNTRIES}+ countries)` +
+            (missing.length > 0 ? ` — missing: ${missing.join(', ')}` : ''),
+          );
           firEntries = new Map();
         } else {
           loaded = true;

@@ -96,3 +96,40 @@
   background: var(--accent-dim);
   color: var(--text-primary);
 }
+
+/* Scope Toggle */
+.fir-panel__scope {
+  display: flex;
+  gap: 0;
+  margin-top: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.fir-panel__scope-btn {
+  flex: 1;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.fir-panel__scope-btn + .fir-panel__scope-btn {
+  border-left: 1px solid var(--border-color);
+}
+
+.fir-panel__scope-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.fir-panel__scope-btn--active {
+  background: var(--accent-glow);
+  color: var(--accent);
+  font-weight: 600;
+}

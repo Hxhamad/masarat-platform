@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useFlightStore } from '../stores/flightStore';
-import { useFilterStore } from '../stores/filterStore';
+import { useFilterStore, type FlightTypeFilter } from '../stores/filterStore';
 import type { ADSBFlight } from '../types/flight';
 
 export function useFilteredFlights(): ADSBFlight[] {
@@ -14,7 +14,7 @@ export function useFilteredFlights(): ADSBFlight[] {
 
     for (const f of flights.values()) {
       // Type filter
-      if (!activeTypes.has(f.type as any)) continue;
+      if (!activeTypes.has(f.type as FlightTypeFilter)) continue;
 
       // Altitude filter
       if (f.altitude < minAlt || f.altitude > maxAlt) continue;

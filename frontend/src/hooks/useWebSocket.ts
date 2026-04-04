@@ -2,11 +2,15 @@ import { useEffect, useRef } from 'react';
 import { useFlightStore } from '../stores/flightStore';
 import type { WSMessage } from '../types/flight';
 
+const BACKOFF_BASE = 1000;
+const BACKOFF_MAX = 30000;
+
 export function useWebSocket() {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bootstrapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasLoadedSnapshot = useRef(false);
+  const retriesRef = useRef(0);
   const { setFlights, removeFlights, setStats, setConnectionStatus } = useFlightStore();
 
   useEffect(() => {
@@ -63,6 +67,7 @@ export function useWebSocket() {
 
       ws.onopen = () => {
         if (!mounted) return;
+        retriesRef.current = 0;
         setConnectionStatus('connected');
         void loadSnapshot();
         console.log('[ws] Connected');
@@ -94,8 +99,11 @@ export function useWebSocket() {
       ws.onclose = () => {
         if (!mounted) return;
         setConnectionStatus('disconnected');
-        console.log('[ws] Disconnected, reconnecting in 3s...');
-        reconnectTimer.current = setTimeout(connect, 3000);
+        retriesRef.current += 1;
+        const jitter = Math.random() * 500;
+        const delay = Math.min(BACKOFF_BASE * Math.pow(2, retriesRef.current - 1), BACKOFF_MAX) + jitter;
+        console.log(`[ws] Disconnected, reconnecting in ${Math.round(delay)}ms (attempt ${retriesRef.current})`);
+        reconnectTimer.current = setTimeout(connect, delay);
       };
 
       ws.onerror = () => {

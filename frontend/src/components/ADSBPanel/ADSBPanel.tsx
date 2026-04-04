@@ -56,19 +56,29 @@ export default function ADSBPanel() {
             <span className="adsb-panel__fir-label">{firLabel}</span>
             <span className="adsb-panel__count">{flights.length} aircraft</span>
           </div>
-          <div className="adsb-panel__list">
+          <div className="adsb-panel__list" role="listbox" aria-label="Aircraft list">
             {display.length === 0 ? (
               <div className="adsb-panel__empty">No aircraft match filters</div>
             ) : (
               display.map((f) => (
                 <div
                   key={f.icao24}
+                  role="option"
+                  tabIndex={0}
+                  aria-selected={f.icao24 === selectedFlight}
                   className={`adsb-panel__item ${f.icao24 === selectedFlight ? 'adsb-panel__item--selected' : ''}`}
                   onClick={() => handleSelect(f.icao24)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleSelect(f.icao24);
+                    }
+                  }}
                 >
                   <span
                     className="adsb-panel__type-dot"
                     style={{ background: flightTypeColor(f.type) }}
+                    aria-label={`Type: ${f.type || 'unknown'}`}
                   />
                   <span className="adsb-panel__callsign">{displayCallsign(f)}</span>
                   <span className="adsb-panel__meta">

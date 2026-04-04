@@ -5,6 +5,7 @@ import { getTrailHistory } from '../db/sqlite.js';
 export async function flightRoutes(app: FastifyInstance): Promise<void> {
   // GET /api/flights — all flights (or filtered by bounds)
   app.get('/api/flights', async (req, reply) => {
+    reply.header('Cache-Control', 'no-cache, max-age=0');
     const { south, west, north, east } = req.query as Record<string, string>;
 
     if (south && west && north && east) {

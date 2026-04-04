@@ -6,6 +6,7 @@ interface FlightState {
   selectedFlight: string | null;
   stats: AggregatorStats;
   connectionStatus: ConnectionStatus;
+  lastMessageAt: number;
 
   // Actions
   setFlights: (flights: ADSBFlight[]) => void;
@@ -25,6 +26,7 @@ export const useFlightStore = create<FlightState>((set) => ({
     messagesPerSecond: 0,
   },
   connectionStatus: 'disconnected' as ConnectionStatus,
+  lastMessageAt: 0,
 
   setFlights: (incoming) =>
     set((state) => {
@@ -32,7 +34,7 @@ export const useFlightStore = create<FlightState>((set) => ({
       for (const f of incoming) {
         next.set(f.icao24, f);
       }
-      return { flights: next };
+      return { flights: next, lastMessageAt: Date.now() };
     }),
 
   removeFlights: (icao24s) =>

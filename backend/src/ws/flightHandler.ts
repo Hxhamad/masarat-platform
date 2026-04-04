@@ -6,11 +6,26 @@ import { setUpdateCallback, getStats } from '../services/adsbAggregator.js';
 
 let wss: WebSocketServer;
 
+export function getWsConnectionCount(): number {
+  return wss ? wss.clients.size : 0;
+}
+
+const MAX_WS_CLIENTS = 50;
+
 export function initWebSocket(server: Server): void {
-  wss = new WebSocketServer({ server, path: '/ws' });
+  wss = new WebSocketServer({ server, path: '/ws', maxPayload: 64 * 1024 });
 
   wss.on('connection', (ws) => {
+    // Connection cap
+    if (wss.clients.size > MAX_WS_CLIENTS) {
+      ws.close(1013, 'Too many connections');
+      return;
+    }
+
     console.log(`[ws] Client connected (total: ${wss.clients.size})`);
+
+    // Discard any incoming messages from clients
+    ws.on('message', () => { /* noop */ });
 
     // Send initial snapshot
     const flights = flightCache.getAll();

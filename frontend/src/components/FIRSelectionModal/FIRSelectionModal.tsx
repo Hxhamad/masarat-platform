@@ -55,12 +55,12 @@ export default function FIRSelectionModal() {
 
   return (
     <div className="fir-modal-overlay">
-      <div className="fir-modal">
+      <div className="fir-modal" role="dialog" aria-modal="true" aria-labelledby="fir-modal-title">
         {/* Header */}
         <div className="fir-modal__header">
           <Radar size={28} className="fir-modal__logo-icon" />
           <div className="fir-modal__title-block">
-            <h1 className="fir-modal__title">MASARAT</h1>
+            <h1 className="fir-modal__title" id="fir-modal-title">MASARAT</h1>
             <p className="fir-modal__subtitle">ADS-B Aviation Monitor</p>
           </div>
         </div>
@@ -84,7 +84,7 @@ export default function FIRSelectionModal() {
                   <span className="fir-modal__chip-text">
                     {fir ? fir.name : id}
                   </span>
-                  <button className="fir-modal__chip-remove" onClick={() => removeFIR(id)}>
+                  <button className="fir-modal__chip-remove" onClick={() => removeFIR(id)} aria-label={`Remove ${fir ? fir.name : id}`}>
                     <X size={12} />
                   </button>
                 </span>
@@ -104,6 +104,7 @@ export default function FIRSelectionModal() {
           <input
             className="fir-modal__search-input"
             type="text"
+            aria-label="Search FIRs by name, ICAO code, or country"
             placeholder="Search by name, ICAO code, or country..."
             value={firSearchQuery}
             onChange={(e) => setFIRSearchQuery(e.target.value)}
@@ -129,8 +130,18 @@ export default function FIRSelectionModal() {
               return (
                 <div
                   key={f.id}
+                  role="option"
+                  tabIndex={isDisabled ? -1 : 0}
+                  aria-selected={isSelected}
+                  aria-disabled={isDisabled}
                   className={`fir-modal__item ${isSelected ? 'fir-modal__item--selected' : ''} ${isDisabled ? 'fir-modal__item--disabled' : ''}`}
                   onClick={() => !isDisabled && toggleFIR(f.id)}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && !isDisabled) {
+                      e.preventDefault();
+                      toggleFIR(f.id);
+                    }
+                  }}
                 >
                   <MapPin
                     size={16}

@@ -19,6 +19,7 @@ export async function firHealthRoutes(app: FastifyInstance): Promise<void> {
 
   // List all available FIRs
   app.get('/api/fir/list', async (_req, reply) => {
+    reply.header('Cache-Control', 'public, max-age=300');
     if (!isFIRDataLoaded()) {
       return reply.code(503).send({ error: 'FIR data still loading' });
     }

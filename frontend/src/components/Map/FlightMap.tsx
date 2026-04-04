@@ -10,6 +10,7 @@ import { useFIRStore } from '../../stores/firStore';
 import { getFIRBounds } from '../../lib/firService';
 import { flightTypeColor, formatAltitude, formatSpeed, displayCallsign } from '../../lib/utils';
 import { setMapInstance } from './mapRef';
+import FIRDiagnostics from './FIRDiagnostics';
 
 type BaseLayerConfig = {
   name: string;
@@ -313,5 +314,10 @@ export default function FlightMap() {
     }).addTo(trailLayer);
   }, [selectedFlight, flights]);
 
-  return <div ref={containerRef} className="map-container" />;
+  return (
+    <>
+      <div ref={containerRef} className="map-container" />
+      <FIRDiagnostics />
+    </>
+  );
 }

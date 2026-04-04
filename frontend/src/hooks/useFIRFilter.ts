@@ -1,8 +1,8 @@
 /**
- * useFIRFilter — Spatial filtering hook (always active)
+ * useFIRFilter — Spatial filtering hook
  *
  * Filters the flight list to only include aircraft physically inside
- * the selected FIR polygons. FIR selection is mandatory — no toggle.
+ * the selected FIR polygons, unless aircraftScope is set to 'all'.
  *
  * Performance:
  *  - <= WORKER_THRESHOLD flights: inline on main thread (no worker overhead)
@@ -15,6 +15,7 @@ import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import { point } from '@turf/helpers';
 import type { Feature, Polygon, MultiPolygon } from 'geojson';
 import { useFIRStore } from '../stores/firStore';
+import { useFilterStore } from '../stores/filterStore';
 import { getFIRFeature, getFIRBounds } from '../lib/firService';
 import type { ADSBFlight } from '../types/flight';
 import type { FIRWorkerRequest, FIRWorkerResponse } from '../lib/firFilterWorker';
@@ -23,6 +24,7 @@ const WORKER_THRESHOLD = 500;
 
 export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
   const selectedFIRs = useFIRStore((s) => s.selectedFIRs);
+  const aircraftScope = useFilterStore((s) => s.aircraftScope);
   const [workerResult, setWorkerResult] = useState<Set<string> | null>(null);
   const workerRef = useRef<Worker | null>(null);
 
@@ -66,9 +68,10 @@ export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
   );
 
   // Worker-based filter for large flight counts
+  const needsWorker = !!(selectedFIRData && selectedFIRData.length > 0 && flights.length > WORKER_THRESHOLD);
+
   useEffect(() => {
-    if (!selectedFIRData || selectedFIRData.length === 0 || flights.length <= WORKER_THRESHOLD) {
-      setWorkerResult(null);
+    if (!needsWorker || !selectedFIRData) {
       return;
     }
 
@@ -96,7 +99,7 @@ export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
     return () => {
       worker.removeEventListener('message', handler);
     };
-  }, [flights, selectedFIRData]);
+  }, [needsWorker, flights, selectedFIRData]);
 
   // Cleanup worker on unmount
   useEffect(() => {
@@ -108,6 +111,11 @@ export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
 
   // Return filtered flights
   return useMemo(() => {
+    // "All Aircraft" mode: bypass spatial filtering entirely
+    if (aircraftScope === 'all') {
+      return flights;
+    }
+
     // No FIRs selected → no aircraft shown
     if (!selectedFIRData || selectedFIRData.length === 0) {
       return [];
@@ -125,5 +133,5 @@ export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
 
     // Worker hasn't responded yet — show nothing until filter settles
     return [];
-  }, [flights, selectedFIRData, workerResult, inlineFilter]);
+  }, [flights, selectedFIRData, workerResult, inlineFilter, aircraftScope]);
 }

@@ -205,7 +205,11 @@ export async function fetchFIRFeatures(): Promise<FIRFeature[]> {
           if (normalised.length > 0) {
             if (!passesQualityGate(normalised)) {
               const countries = new Set(normalised.map((f) => f.properties.country).filter(Boolean));
-              console.warn(`[fir] Local FIR artifact rejected: ${normalised.length} features, ${countries.size} countries (need ${MIN_FIR_FEATURES}+ features, ${MIN_FIR_COUNTRIES}+ countries)`);
+              const missing = REQUIRED_COUNTRIES.filter((c) => !countries.has(c));
+              console.warn(
+                `[fir] Local FIR artifact rejected: ${normalised.length} features, ${countries.size} countries (need ${MIN_FIR_FEATURES}+ features, ${MIN_FIR_COUNTRIES}+ countries)` +
+                (missing.length > 0 ? ` — missing: ${missing.join(', ')}` : ''),
+              );
               throw new Error('Local FIR artifact failed quality gate');
             }
             cachedFeatures = normalised;

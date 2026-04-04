@@ -22,13 +22,14 @@ export default function Header() {
           <input
             className="header__search-input"
             type="text"
+            aria-label="Search by callsign, ICAO code, or registration"
             placeholder="Search callsign, ICAO, reg..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
-        <button className="header__btn" onClick={toggleTheme} title="Toggle theme">
+        <button className="header__btn" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}>
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
       </div>

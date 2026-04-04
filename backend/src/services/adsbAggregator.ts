@@ -48,6 +48,24 @@ const stats: AggregatorStats = {
 let messageCount = 0;
 let mpsWindowStart = Date.now();
 
+// Operational metrics (cumulative)
+let totalFlightsProcessed = 0;
+let totalErrors = 0;
+const startTime = Date.now();
+
+export function getOperationalMetrics() {
+  return {
+    uptimeMs: Date.now() - startTime,
+    uptimeSeconds: Math.floor((Date.now() - startTime) / 1000),
+    totalFlightsProcessed,
+    totalErrors,
+    activeSource: stats.dataSource,
+    lastUpdate: stats.lastUpdate,
+    messagesPerSecond: stats.messagesPerSecond,
+    currentFlightsInCache: stats.totalFlights,
+  };
+}
+
 export function getStats(): AggregatorStats {
   return { ...stats };
 }
@@ -80,6 +98,7 @@ function applySnapshot(sourceName: DataSource, flights: ADSBFlight[]): void {
   stats.dataSource = sourceName;
   stats.lastUpdate = Date.now();
   messageCount += flights.length;
+  totalFlightsProcessed += flights.length;
 
   const mpsElapsed = (Date.now() - mpsWindowStart) / 1000;
   if (mpsElapsed >= 5) {
@@ -146,6 +165,7 @@ async function poll(): Promise<void> {
     schedulePoll(source.rateLimit);
   } catch (err) {
     console.error(`[aggregator] ${source.name} failed:`, (err as Error).message);
+    totalErrors++;
     // Failover to next source
     activeSourceIndex = (activeSourceIndex + 1) % sources.length;
     console.log(`[aggregator] Switching to ${sources[activeSourceIndex].name}`);

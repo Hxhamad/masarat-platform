@@ -4,6 +4,7 @@ import { flightCache } from '../services/cache.js';
 
 export async function statsRoutes(app: FastifyInstance): Promise<void> {
   app.get('/api/stats', async (_req, reply) => {
+    reply.header('Cache-Control', 'no-cache, max-age=0');
     const stats = getStats();
     return reply.send({
       ...stats,

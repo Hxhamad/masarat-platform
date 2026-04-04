@@ -1,3 +1,4 @@
+import { Trophy, Medal, AlertTriangle } from 'lucide-react';
 import { useHealthStore } from '../../stores/healthStore';
 import { useFIRHealth } from '../../hooks/useFIRHealth';
 import './Leaderboard.css';
@@ -8,10 +9,10 @@ function chiColor(chi: number): string {
   return 'var(--status-error)';
 }
 
-function medalEmoji(rank: number): string {
-  if (rank === 1) return '🏆';
-  if (rank === 2) return '🥈';
-  if (rank === 3) return '🥉';
+function medalLabel(rank: number): React.ReactNode {
+  if (rank === 1) return <Trophy size={14} color="var(--status-ok)" />;
+  if (rank === 2) return <Medal size={14} color="var(--text-muted)" />;
+  if (rank === 3) return <Medal size={14} color="#cd7f32" />;
   return `#${rank}`;
 }
 
@@ -56,7 +57,7 @@ export default function Leaderboard() {
       <div className="lb-awards">
         {mostEfficient && (
           <div className="lb-award">
-            <span className="lb-award__icon">🏆</span>
+            <span className="lb-award__icon"><Trophy size={14} /></span>
             <span className="lb-award__title">Most Efficient</span>
             <span className="lb-award__fir">{mostEfficient.firName || mostEfficient.firId}</span>
             <span className="lb-award__value" style={{ color: 'var(--status-ok)' }}>
@@ -66,7 +67,7 @@ export default function Leaderboard() {
         )}
         {mostCongested && (
           <div className="lb-award">
-            <span className="lb-award__icon">⚠️</span>
+            <span className="lb-award__icon"><AlertTriangle size={14} /></span>
             <span className="lb-award__title">Most Congested</span>
             <span className="lb-award__fir">{mostCongested.firName || mostCongested.firId}</span>
             <span className="lb-award__value" style={{ color: 'var(--status-warn)' }}>
@@ -90,7 +91,7 @@ export default function Leaderboard() {
         <div className="lb-table__body">
           {leaderboard.map((entry) => (
             <div key={entry.firId} className="lb-row">
-              <span className="lb-col lb-col--rank">{medalEmoji(entry.rank)}</span>
+              <span className="lb-col lb-col--rank">{medalLabel(entry.rank)}</span>
               <span className="lb-col lb-col--fir">
                 <span className="lb-fir__id">{entry.firName || entry.firId}</span>
               </span>
