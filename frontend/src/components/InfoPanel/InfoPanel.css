@@ -1,20 +1,8 @@
 .info-panel {
-  position: fixed;
-  top: var(--header-height);
-  right: 0;
-  bottom: var(--status-bar-height);
-  width: var(--info-panel-width);
+  height: 100%;
   background: var(--bg-panel);
   border-left: 1px solid var(--border-color);
-  box-shadow: var(--panel-shadow);
-  z-index: 500;
   overflow-y: auto;
-  transform: translateX(100%);
-  transition: transform var(--transition-normal);
-}
-
-.info-panel--open {
-  transform: translateX(0);
 }
 
 .info-panel__header {

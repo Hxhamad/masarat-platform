@@ -1,79 +1,81 @@
-/* ===== MASARAT — CSS Custom Properties ===== */
+/* ===== MASARAT — Aviation Ops Center Theme ===== */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
 :root {
-  /* ── Control Tower (Dark) Theme ── */
-  --bg-primary: #0a0e14;
-  --bg-secondary: #111820;
-  --bg-panel: #151c27;
-  --bg-hover: #1a2332;
-  --bg-active: #1f2b3d;
+  /* ── Deep Navy & Slate Surfaces ── */
+  --bg-primary: #0c1220;
+  --bg-secondary: #111a2e;
+  --bg-panel: #141d30;
+  --bg-hover: #1a2540;
+  --bg-active: #1f2d4a;
 
-  --text-primary: #e0e6ed;
-  --text-secondary: #8899aa;
-  --text-muted: #7a8da0;
+  --text-primary: #d8dee9;
+  --text-secondary: #8a9bb5;
+  --text-muted: #627590;
 
-  --border-color: #1e2a3a;
-  --border-hover: #2a3a4e;
+  --border-color: #1e2d46;
+  --border-hover: #2a3e5c;
 
-  /* Accent */
-  --accent: #00d4ff;
-  --accent-dim: #0099bb;
-  --accent-glow: rgba(0, 212, 255, 0.15);
+  /* Accent — restrained aviation cyan */
+  --accent: #4ea8c8;
+  --accent-dim: #367a94;
+  --accent-glow: rgba(78, 168, 200, 0.12);
 
-  /* Status */
-  --status-ok: #00e676;
-  --status-warn: #ffab00;
-  --status-error: #ff5252;
+  /* Status — amber caution, jade healthy, restrained red critical */
+  --status-ok: #3dba78;
+  --status-warn: #d4a843;
+  --status-error: #c95454;
 
   /* Flight type colors */
-  --flight-airline: #00d4ff;
-  --flight-private: #ab47bc;
-  --flight-cargo: #ff9800;
-  --flight-military: #f44336;
-  --flight-ground: #78909c;
-  --flight-helicopter: #66bb6a;
+  --flight-airline: #4ea8c8;
+  --flight-private: #9a7bc9;
+  --flight-cargo: #c8914e;
+  --flight-military: #c95454;
+  --flight-ground: #6b8199;
+  --flight-helicopter: #4eb882;
 
   /* Source badge */
-  --source-adsb: #00e676;
-  --source-mlat: #ffab00;
-  --source-other: #78909c;
+  --source-adsb: #3dba78;
+  --source-mlat: #d4a843;
+  --source-other: #6b8199;
 
   /* Panel */
-  --panel-radius: 8px;
-  --panel-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --panel-radius: 6px;
+  --panel-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
 
-  /* Font */
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  /* Font — IBM Plex family */
+  --font-mono: 'IBM Plex Mono', 'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans: 'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
   /* Sizes */
-  --header-height: 48px;
-  --status-bar-height: 28px;
-  --info-panel-width: 360px;
+  --header-height: 44px;
+  --status-bar-height: 26px;
+  --info-panel-width: 340px;
 
   /* Animation */
   --transition-fast: 120ms ease;
   --transition-normal: 200ms ease;
 }
 
-/* ── Civilian (Light) Theme ── */
+/* ── Light Theme (kept coherent but secondary) ── */
 [data-theme="light"] {
-  --bg-primary: #f5f7fa;
+  --bg-primary: #f0f2f5;
   --bg-secondary: #ffffff;
   --bg-panel: #ffffff;
-  --bg-hover: #eef1f6;
-  --bg-active: #e2e7ef;
+  --bg-hover: #e8ebf0;
+  --bg-active: #dce1e8;
 
   --text-primary: #1a2332;
-  --text-secondary: #556677;
+  --text-secondary: #4a5b6e;
   --text-muted: #6b7a8a;
 
-  --border-color: #dde3ec;
-  --border-hover: #c5cdd8;
+  --border-color: #d0d6de;
+  --border-hover: #b8c2ce;
 
-  --accent: #0077cc;
-  --accent-dim: #005fa3;
-  --accent-glow: rgba(0, 119, 204, 0.1);
+  --accent: #2d7fa0;
+  --accent-dim: #245f78;
+  --accent-glow: rgba(45, 127, 160, 0.08);
 
-  --panel-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --panel-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
 }

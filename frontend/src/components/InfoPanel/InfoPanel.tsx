@@ -6,10 +6,9 @@ import './InfoPanel.css';
 
 export default function InfoPanel() {
   const { flights, selectedFlight, selectFlight } = useFlightStore();
-  const { infoPanelOpen, setInfoPanelOpen } = useUIStore();
+  const { setInfoPanelOpen } = useUIStore();
 
   const flight = selectedFlight ? flights.get(selectedFlight) : null;
-  const isOpen = infoPanelOpen && !!flight;
 
   const close = () => {
     selectFlight(null);
@@ -17,7 +16,7 @@ export default function InfoPanel() {
   };
 
   return (
-    <aside className={`info-panel ${isOpen ? 'info-panel--open' : ''}`}>
+    <aside className="info-panel">
       <div className="info-panel__header">
         <span className="info-panel__title">
           {flight?.callsign || flight?.icao24.toUpperCase() || 'Aircraft'}

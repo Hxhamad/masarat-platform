@@ -45,6 +45,8 @@ export function normalizeReadsB(response: ReadsBResponse): ADSBFlight[] {
       longitude: ac.lon,
       altitude,
       heading: ac.track ?? 0,
+      track: ac.track,
+      trueHeading: ac.true_heading,
       groundSpeed: ac.gs ?? 0,
       verticalRate: ac.baro_rate ?? ac.geom_rate ?? 0,
       squawk: ac.squawk || '',
@@ -53,6 +55,10 @@ export function normalizeReadsB(response: ReadsBResponse): ADSBFlight[] {
       isOnGround,
       lastSeen: ac.seen ?? 0,
       timestamp: now,
+      windDirection: ac.wd,
+      windSpeed: ac.ws,
+      outsideAirTemp: ac.oat,
+      totalAirTemp: ac.tat,
       type: classifyAircraftType(ac),
       trail: [], // Trails populated from cache/DB
     });
@@ -93,6 +99,7 @@ export function normalizeOpenSky(response: OpenSkyResponse): ADSBFlight[] {
       longitude: lon,
       altitude: onGround ? 0 : altitudeFt,
       heading: track ?? 0,
+      track: track ?? undefined,
       groundSpeed: speedKt,
       verticalRate: vRateFpm,
       squawk: squawk || '',

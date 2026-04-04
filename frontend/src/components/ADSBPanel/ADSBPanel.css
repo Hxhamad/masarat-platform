@@ -1,16 +1,10 @@
 .adsb-panel {
-  position: fixed;
-  top: calc(var(--header-height) + 12px);
-  left: 12px;
-  width: 280px;
+  height: 100%;
   background: var(--bg-panel);
-  border: 1px solid var(--border-color);
-  border-radius: var(--panel-radius);
-  box-shadow: var(--panel-shadow);
-  z-index: 500;
-  max-height: calc(100vh - var(--header-height) - var(--status-bar-height) - 24px);
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .adsb-panel__header {

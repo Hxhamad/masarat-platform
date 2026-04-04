@@ -1,15 +1,25 @@
-import { Search, Sun, Moon, Radar } from 'lucide-react';
+import { Search, Sun, Moon, Radar, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useFilterStore } from '../../stores/filterStore';
 import { useUIStore } from '../../stores/uiStore';
 import './Header.css';
 
-export default function Header() {
+interface HeaderProps {
+  leftCollapsed?: boolean;
+  onToggleLeft?: () => void;
+}
+
+export default function Header({ leftCollapsed, onToggleLeft }: HeaderProps) {
   const { searchQuery, setSearchQuery } = useFilterStore();
   const { theme, toggleTheme } = useUIStore();
 
   return (
     <header className="header">
       <div className="header__brand">
+        {onToggleLeft && (
+          <button className="header__btn" onClick={onToggleLeft} aria-label={leftCollapsed ? 'Show sidebar' : 'Hide sidebar'}>
+            {leftCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          </button>
+        )}
         <Radar size={20} color="var(--accent)" />
         <span className="header__logo">MASARAT</span>
         <div className="header__divider" />

@@ -26,6 +26,7 @@ export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
   const selectedFIRs = useFIRStore((s) => s.selectedFIRs);
   const aircraftScope = useFilterStore((s) => s.aircraftScope);
   const [workerResult, setWorkerResult] = useState<Set<string> | null>(null);
+  const [lastGoodWorker, setLastGoodWorker] = useState<Set<string> | null>(null);
   const workerRef = useRef<Worker | null>(null);
 
   // Build FIR data for filtering (memoised on selection change)
@@ -86,7 +87,9 @@ export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
     const worker = workerRef.current;
 
     const handler = (e: MessageEvent<FIRWorkerResponse>) => {
-      setWorkerResult(new Set(e.data.insideIds));
+      const result = new Set(e.data.insideIds);
+      setLastGoodWorker(result);
+      setWorkerResult(result);
     };
     worker.addEventListener('message', handler);
 
@@ -131,7 +134,12 @@ export function useFIRFilter(flights: ADSBFlight[]): ADSBFlight[] {
       return flights.filter((f) => workerResult.has(f.icao24));
     }
 
-    // Worker hasn't responded yet — show nothing until filter settles
+    // Worker hasn't responded yet — use last good result to avoid blanking
+    if (lastGoodWorker) {
+      return flights.filter((f) => lastGoodWorker.has(f.icao24));
+    }
+
+    // No previous result available — show nothing until filter settles
     return [];
-  }, [flights, selectedFIRData, workerResult, inlineFilter, aircraftScope]);
+  }, [flights, selectedFIRData, workerResult, lastGoodWorker, inlineFilter, aircraftScope]);
 }

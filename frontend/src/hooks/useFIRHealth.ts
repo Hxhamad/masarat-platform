@@ -73,7 +73,13 @@ export function useFIRHealth() {
   useEffect(() => {
     if (viewMode === 'flights') {
       if (timerRef.current) clearInterval(timerRef.current);
-      return;
+
+      // Still poll health lightly in flights view so FIRDiagnostics stays fresh
+      fetchHealth();
+      timerRef.current = setInterval(fetchHealth, HEALTH_POLL_MS * 2); // 60s in flights view
+      return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+      };
     }
 
     // Initial fetch

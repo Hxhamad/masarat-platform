@@ -23,6 +23,37 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── App Shell Layout ── */
+.app-shell {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  bottom: var(--status-bar-height);
+  overflow: hidden;
+}
+
+/* ── Panel Resize Handles ── */
+.resize-handle {
+  background: var(--border-color);
+  transition: background var(--transition-fast);
+}
+
+.resize-handle:hover,
+.resize-handle[data-resize-handle-active] {
+  background: var(--accent-dim);
+}
+
+.resize-handle--vertical {
+  width: 3px;
+  cursor: col-resize;
+}
+
+.resize-handle--horizontal {
+  height: 3px;
+  cursor: row-resize;
+}
+
 /* Remove Leaflet default outlines for cleaner look */
 .leaflet-container:focus {
   outline: none;

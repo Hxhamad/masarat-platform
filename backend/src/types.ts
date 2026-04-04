@@ -9,6 +9,8 @@ export interface ADSBFlight {
   longitude: number;
   altitude: number;        // feet MSL, 0 = ground
   heading: number;         // degrees true (0-359)
+  track?: number;          // reported ground track when available
+  trueHeading?: number;    // true heading when available
   groundSpeed: number;     // knots
   verticalRate: number;    // ft/min
   squawk: string;
@@ -17,6 +19,10 @@ export interface ADSBFlight {
   isOnGround: boolean;
   lastSeen: number;        // seconds since last message
   timestamp: number;       // epoch ms when this record was created/updated
+  windDirection?: number;  // degrees when available from readsb
+  windSpeed?: number;      // knots when available from readsb
+  outsideAirTemp?: number; // Celsius when available from readsb
+  totalAirTemp?: number;   // Celsius when available from readsb
   type: 'airline' | 'private' | 'cargo' | 'military' | 'ground' | 'helicopter';
   trail: TrailPoint[];
 }

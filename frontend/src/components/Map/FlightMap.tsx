@@ -1,8 +1,9 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './Map.css';
 import type { ADSBFlight } from '../../types/flight';
+import type { RiskFeatureCollection, RiskCellProperties, RiskOverlayKind } from '../../types/overlay';
 import { useFlightStore } from '../../stores/flightStore';
 import { useVisibleFlightStore } from '../../stores/visibleFlightStore';
 import { useFIRStore } from '../../stores/firStore';
@@ -10,6 +11,7 @@ import { getFIRBounds } from '../../lib/firService';
 import { flightTypeColor, formatAltitude, formatSpeed, displayCallsign } from '../../lib/utils';
 import { setMapInstance } from './mapRef';
 import FIRDiagnostics from './FIRDiagnostics';
+import OverlayLegend from './OverlayLegend';
 
 type BaseLayerConfig = {
   name: string;
@@ -19,7 +21,13 @@ type BaseLayerConfig = {
   aeronautical?: boolean;
 };
 
-// SVG aircraft icon factory — cached by (color, heading-bucket, selected)
+type RiskWindowMinutes = 15 | 30 | 60;
+
+const OVERLAY_LABELS: Record<RiskOverlayKind, string> = {
+  weather: 'Weather (Open-Meteo)',
+  gnss: 'GNSS Jamming (ADS-B inferred)',
+};
+
 const iconCache = new Map<string, L.DivIcon>();
 
 function bucketHeading(heading: number): number {
@@ -46,7 +54,7 @@ function getAircraftIcon(color: string, heading: number, selected: boolean): L.D
   return icon;
 }
 
-const MAP_CENTER: L.LatLngExpression = [50, 10]; // Europe
+const MAP_CENTER: L.LatLngExpression = [50, 10];
 
 const configuredAeronauticalTileUrl = (import.meta.env.VITE_AERONAUTICAL_TILE_URL ?? '').trim();
 const configuredAeronauticalTileName = (import.meta.env.VITE_AERONAUTICAL_TILE_NAME ?? 'Aeronautical Chart').trim();
@@ -57,7 +65,6 @@ const configuredAeronauticalAttribution = (
 function createBaseLayerConfigs(): BaseLayerConfig[] {
   const configs: BaseLayerConfig[] = [];
 
-  // Standard dark basemap (FIR borders are always drawn on top by FIRLayer)
   configs.push({
     name: 'Standard + FIR Borders',
     url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
@@ -65,7 +72,6 @@ function createBaseLayerConfigs(): BaseLayerConfig[] {
     options: { maxZoom: 18, subdomains: 'abcd' },
   });
 
-  // Aeronautical chart overlay (visible at higher zoom levels)
   if (configuredAeronauticalTileUrl) {
     configs.push({
       name: configuredAeronauticalTileName,
@@ -97,18 +103,111 @@ function buildPopupHtml(flight: ADSBFlight): string {
   </div>`;
 }
 
+function overlayColor(kind: RiskOverlayKind, score: number): string {
+  if (kind === 'weather') {
+    if (score <= 20) return '#2f855a';
+    if (score <= 40) return '#d69e2e';
+    if (score <= 60) return '#f97316';
+    if (score <= 80) return '#ef4444';
+    return '#991b1b';
+  }
+
+  if (score <= 20) return '#0ea5e9';
+  if (score <= 40) return '#6366f1';
+  if (score <= 60) return '#8b5cf6';
+  if (score <= 80) return '#d946ef';
+  return '#be123c';
+}
+
+function buildRiskPopupHtml(kind: RiskOverlayKind, properties: RiskCellProperties): string {
+  const title = kind === 'weather' ? 'Weather Risk' : 'GNSS Jamming Risk';
+  const updated = new Date(properties.updatedAt).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+  const factors = properties.factors.length > 0
+    ? properties.factors.map((factor) => `<li>${factor}</li>`).join('')
+    : '<li>Sparse signal</li>';
+  const staleTag = properties.stale ? ' <span class="risk-popup-content__stale">(stale)</span>' : '';
+  const sourceRow = properties.source
+    ? `<div class="risk-popup-content__row"><span class="label">Source</span><span>${properties.source}${staleTag}</span></div>`
+    : '';
+  const sampleRow = kind === 'gnss'
+    ? `<div class="risk-popup-content__row"><span class="label">Sample</span><span>${properties.sampleSize} aircraft</span></div>`
+    : '';
+
+  return `<div class="risk-popup-content">
+    <div class="risk-popup-content__title">${title}</div>
+    <div class="risk-popup-content__row"><span class="label">Score</span><span>${properties.score}</span></div>
+    <div class="risk-popup-content__row"><span class="label">Confidence</span><span>${properties.confidence}%</span></div>
+    <div class="risk-popup-content__row"><span class="label">Category</span><span>${properties.category}</span></div>
+    ${sourceRow}
+    ${sampleRow}
+    <div class="risk-popup-content__row"><span class="label">Updated</span><span>${updated}</span></div>
+    <div class="risk-popup-content__factors">
+      <span class="label">Factors</span>
+      <ul>${factors}</ul>
+    </div>
+  </div>`;
+}
+
+function renderRiskOverlay(
+  layerGroup: L.LayerGroup,
+  kind: RiskOverlayKind,
+  data: RiskFeatureCollection,
+): void {
+  layerGroup.clearLayers();
+
+  const geoJsonInput = data as unknown as Parameters<typeof L.geoJSON>[0];
+
+  L.geoJSON(geoJsonInput, {
+    style: (feature) => {
+      const properties = (feature as { properties?: RiskCellProperties }).properties;
+      const score = properties?.score ?? 0;
+      const color = overlayColor(kind, score);
+      return {
+        color,
+        weight: 1,
+        opacity: 0.95,
+        fillColor: color,
+        fillOpacity: 0.12 + Math.min(score / 150, 0.4),
+      } satisfies L.PathOptions;
+    },
+    onEachFeature: (feature, layer) => {
+      const properties = (feature as { properties?: RiskCellProperties }).properties;
+      if (!properties) return;
+      layer.bindPopup(buildRiskPopupHtml(kind, properties), {
+        className: 'risk-popup',
+        closeButton: false,
+      });
+    },
+  }).addTo(layerGroup);
+}
+
 export default function FlightMap() {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const markerAnimationRef = useRef<Map<string, number>>(new Map());
   const trailLayerRef = useRef<L.LayerGroup | null>(null);
+  const riskLayersRef = useRef<Record<RiskOverlayKind, L.LayerGroup | null>>({ weather: null, gnss: null });
+  const riskTimersRef = useRef<Record<RiskOverlayKind, number | null>>({ weather: null, gnss: null });
+  const riskRequestsRef = useRef<Record<RiskOverlayKind, AbortController | null>>({ weather: null, gnss: null });
   const hasFittedRef = useRef(false);
+  const riskWindowRef = useRef<RiskWindowMinutes>(15);
+  const [weatherEnabled, setWeatherEnabled] = useState(false);
+  const [gnssEnabled, setGnssEnabled] = useState(false);
+  const [riskWindowMinutes, setRiskWindowMinutes] = useState<RiskWindowMinutes>(15);
+  const [weatherLastUpdated, setWeatherLastUpdated] = useState<number | null>(null);
   const selectedFlight = useFlightStore((s: ReturnType<typeof useFlightStore.getState>) => s.selectedFlight);
   const selectFlight = useFlightStore((s: ReturnType<typeof useFlightStore.getState>) => s.selectFlight);
   const selectedFIRs = useFIRStore((s: ReturnType<typeof useFIRStore.getState>) => s.selectedFIRs);
-
   const flights = useVisibleFlightStore((s) => s.visibleFlights);
+
+  useEffect(() => {
+    riskWindowRef.current = riskWindowMinutes;
+  }, [riskWindowMinutes]);
 
   const cancelMarkerAnimation = useCallback((icao24: string) => {
     const frame = markerAnimationRef.current.get(icao24);
@@ -155,9 +254,86 @@ export default function FlightMap() {
     [cancelMarkerAnimation],
   );
 
-  // Initialize map
+  const clearRiskLayer = useCallback((kind: RiskOverlayKind) => {
+    const timer = riskTimersRef.current[kind];
+    if (timer !== null) {
+      window.clearTimeout(timer);
+      riskTimersRef.current[kind] = null;
+    }
+
+    riskRequestsRef.current[kind]?.abort();
+    riskRequestsRef.current[kind] = null;
+    riskLayersRef.current[kind]?.clearLayers();
+
+    if (kind === 'weather') {
+      setWeatherLastUpdated(null);
+    }
+  }, []);
+
+  const fetchRiskLayer = useCallback(async (kind: RiskOverlayKind) => {
+    const map = mapRef.current;
+    const layerGroup = riskLayersRef.current[kind];
+    if (!map || !layerGroup) return;
+
+    const bounds = map.getBounds();
+    const bbox = [bounds.getSouth(), bounds.getWest(), bounds.getNorth(), bounds.getEast()].join(',');
+    const endpoint = kind === 'weather' ? '/api/layers/weather-risk' : '/api/layers/gnss-jamming-risk';
+
+    riskRequestsRef.current[kind]?.abort();
+    const controller = new AbortController();
+    riskRequestsRef.current[kind] = controller;
+
+    try {
+      const params = kind === 'weather'
+        ? `bbox=${encodeURIComponent(bbox)}&z=${map.getZoom()}`
+        : `bbox=${encodeURIComponent(bbox)}&z=${map.getZoom()}&minutes=${riskWindowRef.current}`;
+
+      const response = await fetch(`${endpoint}?${params}`, { signal: controller.signal });
+      if (!response.ok) {
+        clearRiskLayer(kind);
+        return;
+      }
+
+      const data = (await response.json()) as RiskFeatureCollection;
+      if (controller.signal.aborted) return;
+
+      renderRiskOverlay(layerGroup, kind, data);
+
+      if (kind === 'weather') {
+        const latestUpdated = data.features.reduce(
+          (latest, feature) => Math.max(latest, feature.properties.updatedAt),
+          0,
+        );
+        setWeatherLastUpdated(latestUpdated || Date.now());
+      }
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        clearRiskLayer(kind);
+      }
+    } finally {
+      if (riskRequestsRef.current[kind] === controller) {
+        riskRequestsRef.current[kind] = null;
+      }
+    }
+  }, [clearRiskLayer]);
+
+  const scheduleRiskFetch = useCallback((kind: RiskOverlayKind) => {
+    const existing = riskTimersRef.current[kind];
+    if (existing !== null) {
+      window.clearTimeout(existing);
+    }
+
+    riskTimersRef.current[kind] = window.setTimeout(() => {
+      riskTimersRef.current[kind] = null;
+      void fetchRiskLayer(kind);
+    }, 180);
+  }, [fetchRiskLayer]);
+
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
+
+    const riskLayers = riskLayersRef.current;
+    const markerAnimations = markerAnimationRef.current;
 
     const map = L.map(containerRef.current, {
       center: MAP_CENTER,
@@ -169,8 +345,6 @@ export default function FlightMap() {
 
     const attributionControl = L.control.attribution({ position: 'bottomleft', prefix: false });
     attributionControl.addTo(map);
-
-    // Add zoom control to top-right
     L.control.zoom({ position: 'topright' }).addTo(map);
 
     const baseLayers = createBaseLayerConfigs();
@@ -184,45 +358,84 @@ export default function FlightMap() {
       ]),
     ) as Record<string, L.TileLayer>;
 
-    const defaultBaseLayer =
-      baseLayers.find((config) => !config.aeronautical) ??
-      baseLayers[0];
+    const defaultBaseLayer = baseLayers.find((config) => !config.aeronautical) ?? baseLayers[0];
+    const weatherLayer = L.layerGroup();
+    const gnssLayer = L.layerGroup();
+    riskLayers.weather = weatherLayer;
+    riskLayers.gnss = gnssLayer;
 
     baseLayerInstances[defaultBaseLayer.name].addTo(map);
-    L.control.layers(baseLayerInstances, undefined, { position: 'topright', collapsed: false }).addTo(map);
+    const layerControl = L.control.layers(
+      baseLayerInstances,
+      {
+        [OVERLAY_LABELS.weather]: weatherLayer,
+        [OVERLAY_LABELS.gnss]: gnssLayer,
+      },
+      { position: 'topright', collapsed: false },
+    ).addTo(map);
+
+    const handleOverlayAdd = (event: L.LayersControlEvent) => {
+      if (event.layer === weatherLayer) {
+        setWeatherEnabled(true);
+      }
+      if (event.layer === gnssLayer) {
+        setGnssEnabled(true);
+      }
+    };
+
+    const handleOverlayRemove = (event: L.LayersControlEvent) => {
+      if (event.layer === weatherLayer) {
+        setWeatherEnabled(false);
+      }
+      if (event.layer === gnssLayer) {
+        setGnssEnabled(false);
+      }
+    };
+
+    map.on('overlayadd', handleOverlayAdd);
+    map.on('overlayremove', handleOverlayRemove);
 
     trailLayerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
     setMapInstance(map);
 
     return () => {
-      for (const frame of markerAnimationRef.current.values()) {
+      map.off('overlayadd', handleOverlayAdd);
+      map.off('overlayremove', handleOverlayRemove);
+      layerControl.remove();
+      clearRiskLayer('weather');
+      clearRiskLayer('gnss');
+      riskLayers.weather = null;
+      riskLayers.gnss = null;
+      for (const frame of markerAnimations.values()) {
         cancelAnimationFrame(frame);
       }
-      markerAnimationRef.current.clear();
+      markerAnimations.clear();
       setMapInstance(null);
       map.remove();
       mapRef.current = null;
     };
-  }, []);
+  }, [clearRiskLayer]);
 
-  // Auto-fit map to selected FIR bounds
   useEffect(() => {
     const map = mapRef.current;
     if (!map || selectedFIRs.length === 0) return;
-    if (hasFittedRef.current) return; // Only fit on first load
+    if (hasFittedRef.current) return;
 
-    let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
+    let minLat = 90;
+    let maxLat = -90;
+    let minLng = 180;
+    let maxLng = -180;
     let hasBounds = false;
 
     for (const firId of selectedFIRs) {
-      const b = getFIRBounds(firId);
-      if (!b) continue;
+      const bounds = getFIRBounds(firId);
+      if (!bounds) continue;
       hasBounds = true;
-      if (b.minLat < minLat) minLat = b.minLat;
-      if (b.maxLat > maxLat) maxLat = b.maxLat;
-      if (b.minLng < minLng) minLng = b.minLng;
-      if (b.maxLng > maxLng) maxLng = b.maxLng;
+      if (bounds.minLat < minLat) minLat = bounds.minLat;
+      if (bounds.maxLat > maxLat) maxLat = bounds.maxLat;
+      if (bounds.minLng < minLng) minLng = bounds.minLng;
+      if (bounds.maxLng > maxLng) maxLng = bounds.maxLng;
     }
 
     if (hasBounds) {
@@ -231,7 +444,6 @@ export default function FlightMap() {
     }
   }, [selectedFIRs]);
 
-  // Update markers
   const updateMarkers = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -247,28 +459,22 @@ export default function FlightMap() {
       const icon = getAircraftIcon(color, flight.heading, isSelected);
 
       if (marker) {
-        // Animate position updates when the visible set is moderate enough.
         if (flights.length <= 750) {
           animateMarkerPosition(flight.icao24, marker, flight.latitude, flight.longitude);
         } else {
           cancelMarkerAnimation(flight.icao24);
           marker.setLatLng([flight.latitude, flight.longitude]);
         }
-        // Update icon only when the cached key changes
         marker.setIcon(icon);
       } else {
-        // Create new marker
         marker = L.marker([flight.latitude, flight.longitude], { icon });
-
         marker.on('click', () => {
           selectFlight(flight.icao24);
         });
-
         marker.addTo(map);
         markersRef.current.set(flight.icao24, marker);
       }
 
-      // Popup — only bind lazily on first open; update content if already open
       const existingPopup = marker.getPopup();
       if (existingPopup && existingPopup.isOpen()) {
         existingPopup.setContent(buildPopupHtml(flight));
@@ -277,7 +483,6 @@ export default function FlightMap() {
       }
     }
 
-    // Remove stale markers
     for (const [id, marker] of markersRef.current) {
       if (!currentIds.has(id)) {
         cancelMarkerAnimation(id);
@@ -291,7 +496,49 @@ export default function FlightMap() {
     updateMarkers();
   }, [updateMarkers]);
 
-  // Draw trail for selected flight
+  useEffect(() => {
+    if (weatherEnabled) {
+      scheduleRiskFetch('weather');
+      const interval = window.setInterval(() => {
+        scheduleRiskFetch('weather');
+      }, 5 * 60_000);
+
+      return () => {
+        window.clearInterval(interval);
+      };
+    }
+
+    clearRiskLayer('weather');
+    return undefined;
+  }, [weatherEnabled, scheduleRiskFetch, clearRiskLayer]);
+
+  useEffect(() => {
+    if (gnssEnabled) {
+      scheduleRiskFetch('gnss');
+      return;
+    }
+
+    clearRiskLayer('gnss');
+  }, [gnssEnabled, riskWindowMinutes, scheduleRiskFetch, clearRiskLayer]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const refreshActiveLayers = () => {
+      if (weatherEnabled) scheduleRiskFetch('weather');
+      if (gnssEnabled) scheduleRiskFetch('gnss');
+    };
+
+    map.on('moveend', refreshActiveLayers);
+    map.on('zoomend', refreshActiveLayers);
+
+    return () => {
+      map.off('moveend', refreshActiveLayers);
+      map.off('zoomend', refreshActiveLayers);
+    };
+  }, [weatherEnabled, gnssEnabled, scheduleRiskFetch]);
+
   useEffect(() => {
     const trailLayer = trailLayerRef.current;
     if (!trailLayer) return;
@@ -299,10 +546,10 @@ export default function FlightMap() {
 
     if (!selectedFlight) return;
 
-    const flight = flights.find((f) => f.icao24 === selectedFlight);
+    const flight = flights.find((entry) => entry.icao24 === selectedFlight);
     if (!flight || flight.trail.length < 2) return;
 
-    const latlngs = flight.trail.map((t) => [t.lat, t.lon] as L.LatLngExpression);
+    const latlngs = flight.trail.map((point) => [point.lat, point.lon] as L.LatLngExpression);
     L.polyline(latlngs, {
       color: flightTypeColor(flight.type),
       weight: 2,
@@ -316,6 +563,13 @@ export default function FlightMap() {
     <>
       <div ref={containerRef} className="map-container" />
       <FIRDiagnostics />
+      <OverlayLegend
+        weatherEnabled={weatherEnabled}
+        gnssEnabled={gnssEnabled}
+        weatherLastUpdated={weatherLastUpdated}
+        minutes={riskWindowMinutes}
+        onMinutesChange={(minutes) => setRiskWindowMinutes(minutes as RiskWindowMinutes)}
+      />
     </>
   );
 }

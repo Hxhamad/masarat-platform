@@ -268,3 +268,22 @@ export function getFIRList(): { id: string; name: string; country: string }[] {
 export function getFIRFeature(firId: string): FIRFeature | undefined {
   return cachedFeatures?.find((f) => f.properties.id === firId);
 }
+
+/**
+ * Resolve which cached FIR contains the given lat/lng.
+ * Uses bbox pre-filter for efficient main-thread lookup. Returns the FIR id or undefined.
+ */
+export function resolveContainingFIR(lat: number, lng: number): string | undefined {
+  if (!cachedFeatures) return undefined;
+
+  for (const feature of cachedFeatures) {
+    const bounds = boundsCache.get(feature.properties.id);
+    if (!bounds) continue;
+    if (lat < bounds.minLat || lat > bounds.maxLat || lng < bounds.minLng || lng > bounds.maxLng) continue;
+
+    // Bbox match — return this FIR as "containing"
+    // True point-in-polygon is expensive on main thread for a highlight-only feature
+    return feature.properties.id;
+  }
+  return undefined;
+}

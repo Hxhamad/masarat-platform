@@ -7,6 +7,8 @@ export interface ADSBFlight {
   longitude: number;
   altitude: number;
   heading: number;
+  track?: number;
+  trueHeading?: number;
   groundSpeed: number;
   verticalRate: number;
   squawk: string;
@@ -15,6 +17,10 @@ export interface ADSBFlight {
   isOnGround: boolean;
   lastSeen: number;
   timestamp: number;
+  windDirection?: number;
+  windSpeed?: number;
+  outsideAirTemp?: number;
+  totalAirTemp?: number;
   type: 'airline' | 'private' | 'cargo' | 'military' | 'ground' | 'helicopter';
   trail: TrailPoint[];
 }

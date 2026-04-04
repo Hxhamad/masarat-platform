@@ -1,0 +1,122 @@
+.overlay-legend {
+  position: absolute;
+  left: 16px;
+  bottom: 48px;
+  z-index: 450;
+  width: min(360px, calc(100% - 32px));
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(12, 18, 32, 0.94);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--panel-shadow);
+  color: var(--text-primary);
+}
+
+.overlay-legend__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.overlay-legend__title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.overlay-legend__section {
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.overlay-legend__section:first-of-type {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.overlay-legend__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.overlay-legend__section-title {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.overlay-legend__meta,
+.overlay-legend__meta-row {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.overlay-legend__scale-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+
+.overlay-legend__scale-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.overlay-legend__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.overlay-legend__window-picker {
+  display: flex;
+  gap: 6px;
+}
+
+.overlay-legend__window-btn {
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(15, 23, 42, 0.8);
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.overlay-legend__window-btn:hover {
+  color: var(--text-primary);
+  border-color: rgba(148, 163, 184, 0.55);
+}
+
+.overlay-legend__window-btn--active {
+  background: rgba(14, 165, 233, 0.18);
+  color: #dbeafe;
+  border-color: rgba(14, 165, 233, 0.5);
+}
+
+.overlay-legend__disclaimer {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .overlay-legend {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    bottom: calc(var(--status-bar-height) + 12px);
+  }
+}

@@ -1,6 +1,6 @@
 .legend-bar {
-  position: fixed;
-  bottom: calc(var(--status-bar-height) + 8px);
+  position: absolute;
+  bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;

@@ -14,8 +14,10 @@ import { loadFIRData } from './services/firLoader.js';
 import { flightRoutes } from './routes/flights.js';
 import { statsRoutes } from './routes/stats.js';
 import { firHealthRoutes } from './routes/firHealth.js';
+import { overlayLayersRoutes } from './routes/overlayLayers.js';
 import { metricsRoutes } from './routes/metrics.js';
 import { startHealthPoller } from './services/healthPoller.js';
+import { startOverlayAnalytics } from './services/gnssAnalytics.js';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 
@@ -44,6 +46,7 @@ async function start(): Promise<void> {
   await app.register(flightRoutes);
   await app.register(statsRoutes);
   await app.register(firHealthRoutes);
+  await app.register(overlayLayersRoutes);
   await app.register(metricsRoutes);
 
   // Health check
@@ -70,6 +73,7 @@ async function start(): Promise<void> {
   // Attach WebSocket to the underlying Node HTTP server
   const httpServer = app.server;
   initWebSocket(httpServer);
+  startOverlayAnalytics();
 
   // Start ADS-B data aggregator
   startAggregator();
