@@ -7,11 +7,14 @@
 
 import { getAllFIREntries } from './firLoader.js';
 import { computeFIRHealth } from './kpiEngine.js';
+import { insertHealthSnapshot } from '../db/healthStore.js';
 import type { FIRHealthSnapshot, InefficiencyEntry } from '../types/fir.js';
 
 const POLL_INTERVAL = 60_000; // 60s
+const BATCH_SIZE = 50;
 
 let timer: ReturnType<typeof setInterval> | null = null;
+let batchOffset = 0;
 
 // In-memory latest health cache for quick reads
 const latestHealth = new Map<string, FIRHealthSnapshot & {
@@ -23,14 +26,17 @@ function pollOnce(): void {
   const entries = getAllFIREntries();
   if (entries.length === 0) return;
 
-  // Only compute for FIRs; cap at reasonable number per tick
-  const toProcess = entries.slice(0, 50);
+  // Rotating batch: advance offset each tick so all FIRs get covered
+  if (batchOffset >= entries.length) batchOffset = 0;
+  const toProcess = entries.slice(batchOffset, batchOffset + BATCH_SIZE);
+  batchOffset += BATCH_SIZE;
   let computed = 0;
 
   for (const entry of toProcess) {
     try {
       const firId = entry.feature.properties.id;
       const health = computeFIRHealth(firId);
+      insertHealthSnapshot(health);
       latestHealth.set(firId, health);
       computed++;
     } catch (err) {
@@ -57,10 +63,12 @@ export function stopHealthPoller(): void {
   }
 }
 
-export function getCachedHealth(firId: string) {
-  return latestHealth.get(firId);
+/** Return cached health for a single FIR, or compute on-demand if not yet cached. */
+export function getHealthOrCompute(firId: string) {
+  return latestHealth.get(firId) ?? computeFIRHealth(firId);
 }
 
-export function getAllCachedHealth() {
-  return latestHealth;
+/** Return cached/computed health for multiple FIRs. */
+export function getHealthMulti(firIds: string[]) {
+  return firIds.map((id) => getHealthOrCompute(id));
 }

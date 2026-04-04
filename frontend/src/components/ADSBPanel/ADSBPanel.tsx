@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
-import { useFilteredFlights } from '../../hooks/useFilteredFlights';
-import { useFIRFilter } from '../../hooks/useFIRFilter';
+import { useEffect, useMemo } from 'react';
+import { useVisibleFlightStore } from '../../stores/visibleFlightStore';
+import { useFilterStore } from '../../stores/filterStore';
 import { useFlightStore } from '../../stores/flightStore';
 import { useUIStore } from '../../stores/uiStore';
 import { useFIRStore } from '../../stores/firStore';
@@ -14,17 +14,24 @@ import Leaderboard from '../Leaderboard/Leaderboard';
 import './ADSBPanel.css';
 
 export default function ADSBPanel() {
-  const filteredFlights = useFilteredFlights();
-  const flights = useFIRFilter(filteredFlights);
+  const flights = useVisibleFlightStore((s) => s.visibleFlights);
+  const aircraftScope = useFilterStore((s) => s.aircraftScope);
   const { selectedFlight, selectFlight } = useFlightStore();
   const { setInfoPanelOpen } = useUIStore();
   const selectedFIRs = useFIRStore((s) => s.selectedFIRs);
   const viewMode = useHealthStore((s) => s.viewMode);
+  const setViewMode = useHealthStore((s) => s.setViewMode);
 
   const handleSelect = (icao24: string) => {
     selectFlight(icao24);
     setInfoPanelOpen(true);
   };
+
+  useEffect(() => {
+    if (aircraftScope === 'all' && viewMode !== 'flights') {
+      setViewMode('flights');
+    }
+  }, [aircraftScope, viewMode, setViewMode]);
 
   // Build the FIR header label
   const firLabel = useMemo(() => {
@@ -36,24 +43,27 @@ export default function ADSBPanel() {
     return names.join(' · ');
   }, [selectedFIRs]);
 
-  // Sort: selected first, then by callsign
-  const sorted = [...flights].sort((a, b) => {
-    if (a.icao24 === selectedFlight) return -1;
-    if (b.icao24 === selectedFlight) return 1;
-    return displayCallsign(a).localeCompare(displayCallsign(b));
-  });
+  const effectiveViewMode = aircraftScope === 'all' ? 'flights' : viewMode;
+  const headerLabel = aircraftScope === 'all' ? 'All Aircraft' : firLabel;
 
-  // Limit displayed items for performance
-  const display = sorted.slice(0, 200);
+  const display = useMemo(() => {
+    const sorted = [...flights].sort((a, b) => {
+      if (a.icao24 === selectedFlight) return -1;
+      if (b.icao24 === selectedFlight) return 1;
+      return displayCallsign(a).localeCompare(displayCallsign(b));
+    });
+
+    return sorted.slice(0, 200);
+  }, [flights, selectedFlight]);
 
   return (
     <div className="adsb-panel">
       <FIRPanel />
       <ViewTabs />
-      {viewMode === 'flights' && (
+      {effectiveViewMode === 'flights' && (
         <>
           <div className="adsb-panel__header">
-            <span className="adsb-panel__fir-label">{firLabel}</span>
+            <span className="adsb-panel__fir-label">{headerLabel}</span>
             <span className="adsb-panel__count">{flights.length} aircraft</span>
           </div>
           <div className="adsb-panel__list" role="listbox" aria-label="Aircraft list">
@@ -94,8 +104,8 @@ export default function ADSBPanel() {
           </div>
         </>
       )}
-      {viewMode === 'health' && <HealthPanel />}
-      {viewMode === 'leaderboard' && <Leaderboard />}
+      {effectiveViewMode === 'health' && <HealthPanel />}
+      {effectiveViewMode === 'leaderboard' && <Leaderboard />}
     </div>
   );
 }

@@ -12,8 +12,16 @@
 import type { FastifyInstance } from 'fastify';
 import { getAllFIREntries, getFIREntry, isFIRDataLoaded } from '../services/firLoader.js';
 import { getFlightsInFIR } from '../services/firFilter.js';
-import { computeFIRHealth, computeMultiFIRHealth } from '../services/kpiEngine.js';
+import { getHealthOrCompute, getHealthMulti } from '../services/healthPoller.js';
 import { getHealthHistory } from '../db/healthStore.js';
+
+// FIR IDs are short alphanumeric strings (e.g. "EDGG", "LFFF")
+const FIR_ID_RE = /^[A-Za-z0-9_-]{2,20}$/;
+const MAX_FIR_IDS = 50;
+
+function isValidFirId(id: unknown): id is string {
+  return typeof id === 'string' && FIR_ID_RE.test(id);
+}
 
 export async function firHealthRoutes(app: FastifyInstance): Promise<void> {
 
@@ -35,10 +43,11 @@ export async function firHealthRoutes(app: FastifyInstance): Promise<void> {
   // Current health for one FIR
   app.get<{ Params: { firId: string } }>('/api/fir/:firId/health', async (req, reply) => {
     const { firId } = req.params;
+    if (!isValidFirId(firId)) return reply.code(400).send({ error: 'Invalid FIR ID format' });
     const entry = getFIREntry(firId);
     if (!entry) return reply.code(404).send({ error: `FIR ${firId} not found` });
 
-    const health = computeFIRHealth(firId);
+    const health = getHealthOrCompute(firId);
     return reply.send({
       ...health,
       firName: entry.feature.properties.name,
@@ -51,6 +60,7 @@ export async function firHealthRoutes(app: FastifyInstance): Promise<void> {
     '/api/fir/:firId/history',
     async (req, reply) => {
       const { firId } = req.params;
+      if (!isValidFirId(firId)) return reply.code(400).send({ error: 'Invalid FIR ID format' });
       if (!getFIREntry(firId)) return reply.code(404).send({ error: `FIR ${firId} not found` });
 
       const hours = parseInt(req.query.hours ?? '24', 10) || 24;
@@ -62,6 +72,7 @@ export async function firHealthRoutes(app: FastifyInstance): Promise<void> {
   // Live flights inside an FIR
   app.get<{ Params: { firId: string } }>('/api/fir/:firId/flights', async (req, reply) => {
     const { firId } = req.params;
+    if (!isValidFirId(firId)) return reply.code(400).send({ error: 'Invalid FIR ID format' });
     if (!getFIREntry(firId)) return reply.code(404).send({ error: `FIR ${firId} not found` });
 
     const flights = getFlightsInFIR(firId);
@@ -74,9 +85,19 @@ export async function firHealthRoutes(app: FastifyInstance): Promise<void> {
     if (!Array.isArray(firIds) || firIds.length === 0) {
       return reply.code(400).send({ error: 'firIds array required' });
     }
-    // Cap at 20 for performance
-    const ids = firIds.slice(0, 20);
-    const results = computeMultiFIRHealth(ids);
+    // Validate and cap
+    const ids = firIds.filter(isValidFirId).slice(0, MAX_FIR_IDS);
+    if (ids.length === 0) {
+      return reply.code(400).send({ error: 'No valid FIR IDs provided' });
+    }
+    const results = getHealthMulti(ids).map(h => {
+      const entry = getFIREntry(h.firId);
+      return {
+        ...h,
+        firName: entry?.feature.properties.name ?? h.firId,
+        country: entry?.feature.properties.country ?? '',
+      };
+    });
     return reply.send({ results });
   });
 
@@ -86,14 +107,21 @@ export async function firHealthRoutes(app: FastifyInstance): Promise<void> {
     let ids: string[];
 
     if (raw) {
-      ids = raw.split(',').map(s => s.trim()).filter(Boolean);
+      ids = raw.split(',').map(s => s.trim()).filter(isValidFirId).slice(0, MAX_FIR_IDS);
     } else {
       // Default: use all loaded FIRs (may be slow for 300+ FIRs)
       // In practice, callers should supply a subset
       ids = getAllFIREntries().slice(0, 30).map(e => e.feature.properties.id);
     }
 
-    const results = computeMultiFIRHealth(ids);
+    const results = getHealthMulti(ids).map(h => {
+      const entry = getFIREntry(h.firId);
+      return {
+        ...h,
+        firName: entry?.feature.properties.name ?? h.firId,
+        country: entry?.feature.properties.country ?? '',
+      };
+    });
     const sorted = results.sort((a, b) => b.chi - a.chi);
 
     return reply.send({

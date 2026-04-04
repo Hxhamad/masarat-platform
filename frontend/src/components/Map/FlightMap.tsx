@@ -4,8 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import './Map.css';
 import type { ADSBFlight } from '../../types/flight';
 import { useFlightStore } from '../../stores/flightStore';
-import { useFilteredFlights } from '../../hooks/useFilteredFlights';
-import { useFIRFilter } from '../../hooks/useFIRFilter';
+import { useVisibleFlightStore } from '../../stores/visibleFlightStore';
 import { useFIRStore } from '../../stores/firStore';
 import { getFIRBounds } from '../../lib/firService';
 import { flightTypeColor, formatAltitude, formatSpeed, displayCallsign } from '../../lib/utils';
@@ -109,8 +108,7 @@ export default function FlightMap() {
   const selectFlight = useFlightStore((s: ReturnType<typeof useFlightStore.getState>) => s.selectFlight);
   const selectedFIRs = useFIRStore((s: ReturnType<typeof useFIRStore.getState>) => s.selectedFIRs);
 
-  const filteredFlights = useFilteredFlights();
-  const flights = useFIRFilter(filteredFlights);
+  const flights = useVisibleFlightStore((s) => s.visibleFlights);
 
   const cancelMarkerAnimation = useCallback((icao24: string) => {
     const frame = markerAnimationRef.current.get(icao24);

@@ -15,8 +15,7 @@ import * as turf from '@turf/turf';
 import type { ADSBFlight } from '../types.js';
 import type { FIRHealthSnapshot, InefficiencyEntry } from '../types/fir.js';
 import { getFlightsInFIR } from './firFilter.js';
-import { getFIREntry } from './firLoader.js';
-import { getHistoricalPeak, insertHealthSnapshot } from '../db/healthStore.js';
+import { getHistoricalPeak } from '../db/healthStore.js';
 
 // ===== Tuning constants =====
 
@@ -243,28 +242,5 @@ export function computeFIRHealth(firId: string): FIRHealthSnapshot & {
     co2EstimateKg,
   };
 
-  // Persist to DB
-  insertHealthSnapshot(snapshot);
-
   return { ...snapshot, topInefficient: inefficient, saturationPct };
-}
-
-/**
- * Compute health for multiple FIRs (for leaderboard).
- */
-export function computeMultiFIRHealth(firIds: string[]): Array<FIRHealthSnapshot & {
-  topInefficient: InefficiencyEntry[];
-  saturationPct: number;
-  firName: string;
-  country: string;
-}> {
-  return firIds.map(id => {
-    const entry = getFIREntry(id);
-    const health = computeFIRHealth(id);
-    return {
-      ...health,
-      firName: entry?.feature.properties.name ?? id,
-      country: entry?.feature.properties.country ?? '',
-    };
-  });
 }
