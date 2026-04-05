@@ -14,8 +14,6 @@ function loadTheme(): Theme {
 }
 
 interface LayoutState {
-  leftCollapsed: boolean;
-  rightCollapsed: boolean;
   leftSize: number;   // percentage
   rightSize: number;  // percentage
 }
@@ -26,20 +24,18 @@ function loadLayout(): LayoutState {
     if (raw) {
       const parsed = JSON.parse(raw);
       return {
-        leftCollapsed: !!parsed.leftCollapsed,
-        rightCollapsed: parsed.rightCollapsed ?? true,
         leftSize: typeof parsed.leftSize === 'number' ? parsed.leftSize : 20,
         rightSize: typeof parsed.rightSize === 'number' ? parsed.rightSize : 22,
       };
     }
   } catch { /* ignore */ }
-  return { leftCollapsed: false, rightCollapsed: true, leftSize: 20, rightSize: 22 };
+  return { leftSize: 20, rightSize: 22 };
 }
 
-function persistLayout(layout: Partial<LayoutState>) {
+function persistLayout(patch: Partial<LayoutState>) {
   try {
     const current = loadLayout();
-    localStorage.setItem(LAYOUT_KEY, JSON.stringify({ ...current, ...layout }));
+    localStorage.setItem(LAYOUT_KEY, JSON.stringify({ ...current, ...patch }));
   } catch { /* ignore */ }
 }
 
@@ -51,14 +47,12 @@ interface UIState {
   theme: Theme;
   infoPanelOpen: boolean;
   leftCollapsed: boolean;
-  rightCollapsed: boolean;
   leftSize: number;
   rightSize: number;
 
   toggleTheme: () => void;
   setInfoPanelOpen: (open: boolean) => void;
   setLeftCollapsed: (collapsed: boolean) => void;
-  setRightCollapsed: (collapsed: boolean) => void;
   setLeftSize: (size: number) => void;
   setRightSize: (size: number) => void;
 }
@@ -66,8 +60,7 @@ interface UIState {
 export const useUIStore = create<UIState>((set) => ({
   theme: initialTheme,
   infoPanelOpen: false,
-  leftCollapsed: initialLayout.leftCollapsed,
-  rightCollapsed: initialLayout.rightCollapsed,
+  leftCollapsed: false,
   leftSize: initialLayout.leftSize,
   rightSize: initialLayout.rightSize,
 
@@ -81,15 +74,7 @@ export const useUIStore = create<UIState>((set) => ({
 
   setInfoPanelOpen: (infoPanelOpen) => set({ infoPanelOpen }),
 
-  setLeftCollapsed: (leftCollapsed) => {
-    persistLayout({ leftCollapsed });
-    set({ leftCollapsed });
-  },
-
-  setRightCollapsed: (rightCollapsed) => {
-    persistLayout({ rightCollapsed });
-    set({ rightCollapsed });
-  },
+  setLeftCollapsed: (leftCollapsed) => set({ leftCollapsed }),
 
   setLeftSize: (leftSize) => {
     persistLayout({ leftSize });

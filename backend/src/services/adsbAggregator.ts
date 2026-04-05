@@ -23,6 +23,7 @@ interface SourceConfig {
  * Default covers Europe + South Asia (India/Middle-East).
  */
 function parseRegions(): Region[] {
+  const MAX_REGIONS = 8;
   const raw = process.env.ADSB_REGIONS ?? '';
   if (raw.trim()) {
     const regions: Region[] = [];
@@ -36,6 +37,10 @@ function parseRegions(): Region[] {
         continue;
       }
       regions.push({ lat, lon, dist });
+    }
+    if (regions.length > MAX_REGIONS) {
+      console.warn(`[aggregator] Region count ${regions.length} exceeds cap of ${MAX_REGIONS}, truncating`);
+      regions.length = MAX_REGIONS;
     }
     if (regions.length > 0) return regions;
     console.warn('[aggregator] No valid regions parsed from ADSB_REGIONS, using defaults');
@@ -178,7 +183,7 @@ async function primeInitialSnapshot(): Promise<void> {
 async function fetchFromSource(source: SourceConfig): Promise<ADSBFlight[]> {
   const urls = source.buildUrls(configuredRegions);
   const allFlights: ADSBFlight[] = [];
-  const seen = new Set<string>();
+  const seen = new Map<string, ADSBFlight>();
 
   // Fetch all regions in parallel (with individual timeouts)
   const results = await Promise.allSettled(
@@ -202,9 +207,15 @@ async function fetchFromSource(source: SourceConfig): Promise<ADSBFlight[]> {
   for (const result of results) {
     if (result.status === 'fulfilled') {
       for (const f of result.value) {
-        if (!seen.has(f.icao24)) {
-          seen.add(f.icao24);
+        const existing = seen.get(f.icao24);
+        if (!existing) {
+          seen.set(f.icao24, f);
           allFlights.push(f);
+        } else if (f.timestamp > existing.timestamp) {
+          // Prefer the newer record from overlapping regions
+          const idx = allFlights.indexOf(existing);
+          if (idx !== -1) allFlights[idx] = f;
+          seen.set(f.icao24, f);
         }
       }
     }

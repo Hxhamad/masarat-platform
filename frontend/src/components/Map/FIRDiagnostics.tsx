@@ -48,7 +48,7 @@ export default function FIRDiagnostics() {
       const html = `<div class="fir-diag-badge" style="border-color: ${color}">
         <span class="fir-diag-badge__chi" style="color: ${color}">${health.chi}</span>
         <span class="fir-diag-badge__label">${health.firName || firId}</span>
-        <span class="fir-diag-badge__stat">${health.flightCount} flights · ${health.saturationPct}% sat</span>
+        <span class="fir-diag-badge__stat">${health.flightCount} total · ${health.saturationPct}% sat</span>
       </div>`;
 
       const icon = L.divIcon({

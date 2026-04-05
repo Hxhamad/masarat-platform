@@ -65,13 +65,14 @@ export default function FIRLayer() {
 
     map.on('zoomend', updateStyles);
 
+    const layers = geoJsonLayersRef.current;
     return () => {
       map.off('zoomend', updateStyles);
       if (layerGroupRef.current) {
         layerGroupRef.current.remove();
         layerGroupRef.current = null;
       }
-      geoJsonLayersRef.current.clear();
+      layers.clear();
     };
   }, [updateStyles]);
 

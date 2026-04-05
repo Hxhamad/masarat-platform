@@ -87,3 +87,59 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ── Mobile / Narrow-screen Responsive ── */
+@media (max-width: 768px) {
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Hide the resizable panel group on mobile — we swap to stacked layout */
+  .app-shell [data-panel-group] {
+    flex-direction: column !important;
+  }
+
+  .resize-handle--vertical {
+    display: none;
+  }
+
+  /* Left sidebar becomes a bottom drawer */
+  .adsb-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: var(--status-bar-height);
+    height: 45vh;
+    max-height: 45vh;
+    z-index: 800;
+    border-right: none;
+    border-top: 1px solid var(--border-color);
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+    overflow-y: auto;
+  }
+
+  /* Right info panel becomes full overlay on mobile */
+  .info-panel {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    bottom: var(--status-bar-height);
+    z-index: 900;
+    border-left: none;
+  }
+
+  .header__search-input {
+    width: 140px;
+  }
+
+  .header__subtitle {
+    display: none;
+  }
+
+  .header__divider {
+    display: none;
+  }
+}

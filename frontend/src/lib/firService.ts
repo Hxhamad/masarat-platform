@@ -11,6 +11,8 @@
 import type { FeatureCollection, Polygon, MultiPolygon } from 'geojson';
 import type { FIRFeature, FIRBounds } from '../types/fir';
 import bbox from '@turf/bbox';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
+import { point } from '@turf/helpers';
 
 interface FIRFileMetadata {
   airspaceType?: string;
@@ -271,19 +273,23 @@ export function getFIRFeature(firId: string): FIRFeature | undefined {
 
 /**
  * Resolve which cached FIR contains the given lat/lng.
- * Uses bbox pre-filter for efficient main-thread lookup. Returns the FIR id or undefined.
+ * Uses bbox pre-filter then true point-in-polygon for accuracy.
+ * Returns the FIR id or undefined.
  */
 export function resolveContainingFIR(lat: number, lng: number): string | undefined {
   if (!cachedFeatures) return undefined;
+
+  const pt = point([lng, lat]);
 
   for (const feature of cachedFeatures) {
     const bounds = boundsCache.get(feature.properties.id);
     if (!bounds) continue;
     if (lat < bounds.minLat || lat > bounds.maxLat || lng < bounds.minLng || lng > bounds.maxLng) continue;
 
-    // Bbox match — return this FIR as "containing"
-    // True point-in-polygon is expensive on main thread for a highlight-only feature
-    return feature.properties.id;
+    // Bbox match — verify with true point-in-polygon
+    if (booleanPointInPolygon(pt, feature)) {
+      return feature.properties.id;
+    }
   }
   return undefined;
 }

@@ -64,7 +64,7 @@ export default function ADSBPanel() {
         <>
           <div className="adsb-panel__header">
             <span className="adsb-panel__fir-label">{headerLabel}</span>
-            <span className="adsb-panel__count">{flights.length} aircraft</span>
+            <span className="adsb-panel__count">{flights.length} visible</span>
           </div>
           <div className="adsb-panel__list" role="listbox" aria-label="Aircraft list">
             {display.length === 0 ? (
